@@ -1,0 +1,34 @@
+AI:
+- Add pruning to minimax
+
+Eval function:
+- Square ratings
+- Rook on king/queen row/column
+- Bishop on king/queen diagonal
+- Controlling squares
+- how many it attacks
+- how many it defends
+- king safety
+- pawn structure
+
+
+
+Training:
+- Get stockfish moves and eval
+- Get a variety of enemy bots
+
+
+
+Visuals:
+- Add Stockfish and our eval
+- Make it player vs bot or bot vs bot
+- in bot vs bot, make moves increment in steps
+
+
+
+
+Other:
+- Sign up to kaggle competition: Deadline 24/12
+- Check how agent code interacts with competition
+- Export final bot to rust/C/C#
+- Check memory and cpu restrictions
