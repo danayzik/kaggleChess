@@ -2,6 +2,7 @@ import pygame
 import chess
 import cairosvg
 from io import BytesIO
+from bot import minimax
 
 pygame.init()
 WIDTH, HEIGHT = 512, 512
@@ -77,7 +78,11 @@ while running:
                     board.push(move)
                 selected_square = None
                 legal_moves = []
-
+    if board.turn == chess.WHITE:
+        # Call minimax to get the best move for the bot (white)
+        eval_score, best_move = minimax(board, 3, True)  # You can adjust the depth
+        print(eval_score)
+        board.push(best_move)
     draw_board()
     if selected_square is not None:
         highlight_square(selected_square)

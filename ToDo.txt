@@ -23,6 +23,7 @@ Visuals:
 - Add Stockfish and our eval
 - Make it player vs bot or bot vs bot
 - in bot vs bot, make moves increment in steps
+- make board refresh after player move
 
 
 
