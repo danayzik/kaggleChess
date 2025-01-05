@@ -9,3 +9,4 @@ def print_square_values():
         values_2d[rank][file] = square_value(square)
     for row in values_2d:
         print(row)
+print_square_values()
