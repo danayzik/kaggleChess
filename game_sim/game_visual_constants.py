@@ -1,0 +1,3 @@
+WIDTH, HEIGHT = 512, 576
+SQUARE_SIZE = WIDTH // 8
+IMAGE_DIR = "../assets/pieces"

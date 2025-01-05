@@ -1,66 +1,10 @@
+from typing import Optional
+
 import chess
+from pygame import Surface
 
-PIECE_VALUES = {
-    chess.PAWN: 1,
-    chess.KNIGHT: 3,
-    chess.BISHOP: 3,
-    chess.ROOK: 5,
-    chess.QUEEN: 9,
-    chess.KING: 0
-}
-CHAR_TO_PIECE = {
-    'p': chess.PAWN,
-    'P': chess.PAWN,
-    'n': chess.KNIGHT,
-    'N': chess.KNIGHT,
-    'b': chess.BISHOP,
-    'B': chess.BISHOP,
-    'r': chess.ROOK,
-    'R': chess.ROOK,
-    'q': chess.QUEEN,
-    'Q': chess.QUEEN,
-    'k': chess.KING,
-    'K': chess.KING
-}
-ATTACK_VALUES = {
-    chess.PAWN: 0.05,
-    chess.KNIGHT: 0.2,
-    chess.BISHOP: 0.2,
-    chess.ROOK: 0.6,
-    chess.QUEEN: 1,
-    chess.KING: 1.2
-}
-DEFEND_VALUES = {
-    chess.PAWN: 0.25,
-    chess.KNIGHT: 0.2,
-    chess.BISHOP: 0.2,
-    chess.ROOK: 0.1,
-    chess.QUEEN: 0.05,
-    chess.KING: 0
-}
-SQUARE_CONTROL_VALUE = 0.05
-board = chess.Board()
-fianchetto_bonus = 0.08
-castle_rights_bonus = 0.5
-
-def precompute_long_diagonals():
-    long_diagonals = set()
-    for square in chess.SQUARES:
-        if chess.square_file(square) == chess.square_rank(square) or \
-           chess.square_file(square) + chess.square_rank(square) == 7:
-            long_diagonals.add(square)
-    return long_diagonals
-
-
-long_diagonals = precompute_long_diagonals()
-def square_value(square):
-    file = chess.square_file(square)
-    rank = chess.square_rank(square)
-    center_score = round(5 - ((3.5 - file)**2 + (3.5 - rank)**2)**0.5, 2)
-    return center_score*0.2
-
-
-square_value_map = {square: square_value(square) for square in chess.SQUARES}
+from bot_v1_constants import *
+from players.player import Player
 
 def evaluate_piece(board, square, piece, piece_char):
     piece_enum = CHAR_TO_PIECE[piece_char]
@@ -81,7 +25,7 @@ def evaluate_piece(board, square, piece, piece_char):
                 piece_value += ATTACK_VALUES[controlled_piece_enum]
     return piece_value
 
-# add game over eval
+
 def evaluate_board(board) -> float:
     if board.is_checkmate():
         if board.turn == chess.WHITE:
@@ -125,9 +69,7 @@ def minimax(board, depth, alpha, beta, is_maximizing):
             alpha = max(alpha, eval)
             if beta <= alpha:
                 break  # Beta cutoff
-
         return max_eval, best_move
-
     else:
         min_eval = float('inf')
         for move in board.legal_moves:
@@ -144,3 +86,17 @@ def minimax(board, depth, alpha, beta, is_maximizing):
                 break  # Alpha cutoff
 
         return min_eval, best_move
+
+class BotV1(Player):
+
+    def get_move(self, board: chess.Board) -> chess.Move:
+        pass
+
+    def report_game_over(self, winner: Optional[chess.Color]) -> None:
+        pass
+
+    def get_clicked_square(self, board: chess.Board, screen: Surface) -> chess.Piece:
+        pass
+
+
+

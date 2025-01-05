@@ -1,4 +1,4 @@
-from bot import square_value
+from players.bot import square_value
 import chess
 
 def print_square_values():

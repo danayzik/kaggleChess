@@ -1,5 +1,13 @@
+In progress:
+- bot player
+- Game visuals/not/real player
+- Screen
+- remove visualizer
+- human player
+
+
 AI:
-- Add pruning to minimax
+- Understand pruning
 
 Eval function:
 - Square ratings
@@ -18,14 +26,13 @@ Eval function:
 
 
 Training:
-- Get stockfish moves and eval
-- Get a variety of enemy bots
+- Get games database
+- Train eval function
 
 
 
 Visuals:
 - Add Stockfish and our eval
-- Make it player vs bot or bot vs bot
 - in bot vs bot, make moves increment in steps
 - make board refresh after player move
 
