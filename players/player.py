@@ -13,17 +13,27 @@ class Player(ABC):
         pass
 
 
-
     @abstractmethod
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
         pass
 
 
 
-    @abstractmethod
-    def get_clicked_square(self, board: chess.Board, screen: Surface) -> chess.Piece:
+
+    def get_clicked_piece(self, board: chess.Board, screen: Surface) -> tuple[chess.Piece, chess.Square]:
         pass
 
 
     def set_color(self, color: chess.Color):
         self.color = color
+
+    def is_human(self):
+        return False
+
+
+    def get_clicked_square(self, board: chess.Board, screen: Surface) -> chess.Square:
+        pass
+
+
+    def get_clicked_promotion_piece(self) -> chess.Piece:
+        pass

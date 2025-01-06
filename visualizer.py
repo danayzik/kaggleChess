@@ -8,11 +8,7 @@ from players.bot import minimax
 
 
 
-def get_square_under_mouse(pos):
-    x, y = pos
-    col = x // SQUARE_SIZE
-    row = 7 - (y // SQUARE_SIZE)
-    return chess.square(col, row)
+
 
 
 # fen = "8/1P1k2K1/8/8/8/8/8/8 b - - 1 0"
@@ -63,7 +59,7 @@ while running:
             highlight_square(move.to_square)
 
     draw_pieces(board, pieces)
-    pygame.display.flip()
+
     if board.is_game_over():
         display_game_over_message(board)
         break  # Exit the game loop after displaying the result

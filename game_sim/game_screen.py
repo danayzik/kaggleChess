@@ -2,7 +2,7 @@ import pygame
 import chess
 import cairosvg
 from io import BytesIO
-from game_visual_constants import HEIGHT, WIDTH, SQUARE_SIZE, IMAGE_DIR
+from game_sim.game_visual_constants import HEIGHT, WIDTH, SQUARE_SIZE, IMAGE_DIR, GAME_HEIGHT, GAME_WIDTH
 
 
 def load_chess_pieces():
@@ -27,11 +27,14 @@ def load_svg_to_surface(svg_path, size):
 
 class GameScreen:
     def __init__(self):
+        pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Chess Visualization")
         self.pieces = load_chess_pieces()
-        self.draw_board()
 
+    @staticmethod
+    def refresh():
+        pygame.display.flip()
 
     def draw_board(self):
         colors = [pygame.Color("white"), pygame.Color("gray")]
@@ -42,6 +45,7 @@ class GameScreen:
                 pygame.draw.rect(self.screen, color,
                                  pygame.Rect(col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
+
     def draw_pieces(self, board):
         for square in chess.SQUARES:
             piece = board.piece_at(square)
@@ -50,6 +54,7 @@ class GameScreen:
                 col = chess.square_file(square)
                 self.screen.blit(self.pieces[piece.symbol()], (col * SQUARE_SIZE, row * SQUARE_SIZE))
 
+
     def highlight_square(self, square):
         if square is not None:
             col = chess.square_file(square)
@@ -57,34 +62,20 @@ class GameScreen:
             pygame.draw.rect(self.screen, pygame.Color("yellow"),
                              pygame.Rect(col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), 3)
 
-    #Make this player dependant
-    def show_promotion_ui(self):
-        # Create a small UI for promotion selection
-        # Display options for Black Queen, Rook, Bishop, Knight outside the normal game window
-        promotion_pieces = [chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT]
-        piece_names = ["q", 'r', 'b', 'n']
-        screen_width, screen_height = pygame.display.get_surface().get_size()
-        option_width = SQUARE_SIZE
-        promotion_ui_height = screen_height - 64  # Make the promotion UI appear below the board
-        # Draw promotion options outside the main board window
+
+    def show_promotion_ui(self, color: chess.Color):
+        if color == chess.WHITE:
+            piece_names = ["Q", 'R', 'B', 'N']
+        else:
+            piece_names = ["q", 'r', 'b', 'n']
+        promotion_ui_height = GAME_HEIGHT
         for i, piece_name in enumerate(piece_names):
-            piece_image = self.pieces[piece_name]  # Load black pieces (bQ, bR, bB, bN)
-            pygame.draw.rect(self.screen, (200, 200, 200), (i * option_width, promotion_ui_height, option_width, 64))
+            piece_image = self.pieces[piece_name]
+            pygame.draw.rect(self.screen, (200, 200, 200), (WIDTH - GAME_WIDTH+i * SQUARE_SIZE, promotion_ui_height, SQUARE_SIZE, SQUARE_SIZE))
             self.screen.blit(piece_image,
-                        (i * option_width + (option_width - piece_image.get_width()) // 2, promotion_ui_height))
-        pygame.display.flip()
-        # Move to player class
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    x, y = event.pos
-                    if promotion_ui_height <= y <= screen_height:  # Check if click is within the promotion UI area
-                        index = x // option_width
-                        if 0 <= index < len(promotion_pieces):
-                            return promotion_pieces[index]
+                        (i * SQUARE_SIZE + (SQUARE_SIZE - piece_image.get_width()) // 2, promotion_ui_height))
+        self.refresh()
+
 
     # move waiting for quit to game/player
     def display_game_over_message(self, board):
@@ -116,4 +107,5 @@ class GameScreen:
 
     def update(self, board: chess.Board):
         self.draw_board()
-        self.draw_pieces()
+        self.draw_pieces(board)
+        self.refresh()
