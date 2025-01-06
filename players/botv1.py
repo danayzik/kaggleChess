@@ -2,8 +2,7 @@ from typing import Optional
 
 import chess
 from pygame import Surface
-
-from bot_v1_constants import *
+from players.bot_v1_constants import *
 from players.player import Player
 
 def evaluate_piece(board, square, piece, piece_char):
@@ -88,9 +87,13 @@ def minimax(board, depth, alpha, beta, is_maximizing):
         return min_eval, best_move
 
 class BotV1(Player):
-
     def get_move(self, board: chess.Board) -> chess.Move:
-        pass
+        maximize = self.color == chess.WHITE
+        alpha = -float('inf')
+        beta = float('inf')
+        eval, move = minimax(board, 3, alpha, beta, maximize)
+        return move
+
 
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
         pass

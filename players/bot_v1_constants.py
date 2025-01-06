@@ -39,7 +39,6 @@ DEFEND_VALUES = {
     chess.KING: 0
 }
 SQUARE_CONTROL_VALUE = 0.05
-board = chess.Board()
 fianchetto_bonus = 0.08
 castle_rights_bonus = 0.5
 
