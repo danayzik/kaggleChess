@@ -5,6 +5,20 @@ from pygame import Surface
 from players.bot_v1_constants import *
 from players.player import Player
 
+
+def sorted_legal_moves(board:chess.Board):
+    legal_moves = list(board.legal_moves)
+    sorted_moves = sorted(
+        legal_moves,
+        key=lambda move: (
+            not (board.gives_check(move) and board.piece_at(move.from_square).piece_type == chess.QUEEN),
+            # Queen checks first
+            not board.gives_check(move),  # Other checks next
+            not board.is_capture(move)  # Captures next
+        )
+    )
+    return sorted_moves
+
 def evaluate_piece(board, square, piece, piece_char):
     piece_enum = CHAR_TO_PIECE[piece_char]
     piece_value = PIECE_VALUES[piece_enum]
@@ -24,14 +38,16 @@ def evaluate_piece(board, square, piece, piece_char):
                 piece_value += ATTACK_VALUES[controlled_piece_enum]
     return piece_value
 
+def is_draw(board: chess.Board) -> bool:
+    return board.is_stalemate() or board.is_fifty_moves() or board.is_repetition() or board.is_fifty_moves()
 
-def evaluate_board(board) -> float:
+def evaluate_board(board: chess.Board) -> float:
     if board.is_checkmate():
         if board.turn == chess.WHITE:
             return float('-inf')  # White loses, assign a very negative score
         else:
             return float('inf')  # Black loses, assign a very positive score
-    elif board.is_stalemate():
+    if is_draw(board):
         return 0
     scores = {chess.WHITE: 0, chess.BLACK: 0}
     white_can_castle = board.has_castling_rights(chess.WHITE)
@@ -56,12 +72,13 @@ def minimax(board, depth, alpha, beta, is_maximizing):
     best_move = None
     if is_maximizing:
         max_eval = float('-inf')
-        for move in board.legal_moves:
+        legal_moves = sorted_legal_moves(board)
+        for move in legal_moves:
             board.push(move)
             eval, _ = minimax(board, depth - 1, alpha, beta, False)
             board.pop()
 
-            if eval > max_eval:
+            if eval >= max_eval:
                 max_eval = eval
                 best_move = move
 
@@ -71,12 +88,13 @@ def minimax(board, depth, alpha, beta, is_maximizing):
         return max_eval, best_move
     else:
         min_eval = float('inf')
-        for move in board.legal_moves:
+        legal_moves = sorted_legal_moves(board)
+        for move in legal_moves:
             board.push(move)
             eval, _ = minimax(board, depth - 1, alpha, beta, True)
             board.pop()
 
-            if eval < min_eval:
+            if eval <= min_eval:
                 min_eval = eval
                 best_move = move
 
@@ -96,7 +114,12 @@ class BotV1(Player):
 
 
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
-        pass
+        if winner is None:
+            print("Draw")
+        if winner == self.color:
+            print("botV1 wins")
+        else:
+            print("botV1 loses")
 
     def get_clicked_square(self, board: chess.Board, screen: Surface) -> chess.Piece:
         pass

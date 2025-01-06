@@ -1,4 +1,5 @@
 
+
 from game_sim.game_screen import GameScreen
 
 from players.player import Player
@@ -18,6 +19,8 @@ def is_promotion(piece: chess.Piece, color: chess.Color, to_square: chess.Square
 class Game:
     def __init__(self, player1: Player, player2: Player, visual=False):
         self.board = chess.Board()
+        fen = "r1bq2r1/b4pk1/p1pp1p2/1p2pP2/1P2P1PB/3P4/1PPQ2P1/R3K2R w"
+        self.board.set_fen(fen)
         if visual:
             self.game_screen = GameScreen()
             self.game_screen.update(self.board)
@@ -37,9 +40,11 @@ class Game:
         if chess.WHITE == colors[0]:
             self.white_player = player1
             self.black_player = player2
+            print("player1 is white, player2 is black")
         else:
             self.black_player = player1
             self.white_player = player2
+            print("player1 is black, player2 is white")
 
     def run(self):
         self.running = True
@@ -57,6 +62,7 @@ class Game:
                 self.running = False
         if self.visuals:
             self.game_screen.display_game_over_message(self.board)
+
         self.running = False
 
 
@@ -64,7 +70,7 @@ class Game:
     def fetch_play_update(self, player: Player, human, visual) -> bool:
         if human:
             return self.handle_human_move(player)
-        move = player.get_move(self.board)
+        move = player.get_move(self.board.copy())
         self.board.push(move)
         if visual:
             self.game_screen.update(self.board)

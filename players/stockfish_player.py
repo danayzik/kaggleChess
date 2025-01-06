@@ -19,6 +19,12 @@ class StockfishPlayer(Player):
 
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
         self.engine.quit()
+        if winner is None:
+            print("Draw")
+        if winner == self.color:
+            print("stockfish wins")
+        else:
+            print("stockfish loses")
 
 
 

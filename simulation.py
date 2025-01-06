@@ -5,7 +5,8 @@ from players.botv1 import BotV1
 
 
 p1 = BotV1()
-p2 = StockfishPlayer()
-p2.set_engine_strength(1320,1.0)
+p2 = BotV1()
+# p2 = StockfishPlayer()
+# p2.set_engine_strength(1320,0.5)
 g = Game(p1, p2, True)
 g.run()
