@@ -1,10 +1,6 @@
 
 
 For botv2:
-- manually tune parameters.
-- split to 3 games stages
-- better king safety bonus
-- square values by piece
 - hanging piece?
 - Make weights so i can tune them later
 

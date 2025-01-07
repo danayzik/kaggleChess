@@ -5,11 +5,9 @@ import chess
 from typing import Optional
 
 class StockfishPlayer(Player):
-
-
     def __init__(self):
         super().__init__()
-        stockfish_path = "D:\chess\stockfish\stockfish-windows-x86-64-avx2"
+        stockfish_path = "C:\chess\stockfish\stockfish-windows-x86-64-avx2"
         self.engine = chess.engine.SimpleEngine.popen_uci(stockfish_path)
         self.time_limit = 2.0
 

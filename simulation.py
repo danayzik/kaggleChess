@@ -1,3 +1,5 @@
+import chess
+from players.botv2 import BotV2
 from players.human_player import HumanPlayer
 from players.player import Player
 from players.stockfish_player import StockfishPlayer
@@ -15,10 +17,11 @@ counter_lock = Lock()
 
 def play_game():
     global botv1_wins, stockfish_wins, draws, games
-    p1 = BotV1()
-    p2 = StockfishPlayer()
-    p2.set_engine_strength(1320, 0.1)
-    g = Game(p1, p2, False)
+    p1 = BotV2()
+    p2 = BotV1()
+    # p2 = StockfishPlayer()
+    # p2.set_engine_strength(1320, 0.1)
+    g = Game(p1, p2, True)
     res = g.run()
     with counter_lock:
         if res == 1:
@@ -41,7 +44,10 @@ def run_games_in_threads():
         future.result()
 
 if __name__ == "__main__":
-    run_games_in_threads()
-    print(f"BotV1 wins: {botv1_wins}")
-    print(f"Stockfish wins: {stockfish_wins}")
-    print(f"Draws: {draws}")
+    # run_games_in_threads()
+    # print(f"BotV1 wins: {botv1_wins}")
+    # print(f"Stockfish wins: {stockfish_wins}")
+    # print(f"Draws: {draws}")
+    play_game()
+
+
