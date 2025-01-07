@@ -1,11 +1,18 @@
-
-
 from game_sim.game_screen import GameScreen
-
 from players.player import Player
 import random
 import chess
 
+OPENINGS = [
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "rnbqkbnr/1p2pp1p/p2p2p1/8/2PNP3/8/PP3PPP/RNBQKB1R w KQkq - 0 6",
+    "r1b1kb1r/ppppq1pp/2n2n2/1B2p3/4N3/5N2/PPPPQPPP/R1B1K2R w KQkq - 3 7",
+    "rnbqkb1r/p2ppppp/5n2/2pP4/2p5/2N5/PP2PPPP/R1BQKBNR w KQkq - 0 5",
+    "rnbqk1nr/p1p1bppp/1p2p3/3pP3/3P4/2N5/PPP2PPP/R1BQKBNR w KQkq - 0 5",
+    "r2qk1nr/ppp2pp1/2np3p/2b1p3/2B1P1b1/2PP1N2/PP3PPP/RNBQ1RK1 w kq - 0 7",
+    "rn1qk1nr/pp2ppbp/3p2p1/2p5/2PP2b1/2N1PN2/PP3PPP/R1BQKB1R w KQkq c6 0 6",
+    "rnbqkbnr/1p2pp1p/p2p2p1/8/2PNP3/8/PP3PPP/RNBQKB1R w KQkq - 0 6",
+]
 
 
 def is_promotion(piece: chess.Piece, color: chess.Color, to_square: chess.Square) -> bool:
@@ -19,25 +26,25 @@ def is_promotion(piece: chess.Piece, color: chess.Color, to_square: chess.Square
 class Game:
     def __init__(self, player1: Player, player2: Player, visual=False):
         self.board = chess.Board()
-        fen = "r1bq2r1/b4pk1/p1pp1p2/1p2pP2/1P2P1PB/3P4/1PPQ2P1/R3K2R w"
+        fen = random.choice(OPENINGS)
         self.board.set_fen(fen)
         if visual:
             self.game_screen = GameScreen()
             self.game_screen.update(self.board)
         self.white_player = player1
         self.black_player = player2
+        self.colors = [chess.WHITE, chess.BLACK]
         self.assign_colors(player1, player2)
         self.running = False
-
         self.visuals = visual
 
 
+
     def assign_colors(self, player1: Player, player2: Player) -> None:
-        colors = [chess.WHITE, chess.BLACK]
-        random.shuffle(colors)
-        player1.set_color(colors[0])
-        player2.set_color(colors[1])
-        if chess.WHITE == colors[0]:
+        random.shuffle(self.colors)
+        player1.set_color(self.colors[0])
+        player2.set_color(self.colors[1])
+        if chess.WHITE == self.colors[0]:
             self.white_player = player1
             self.black_player = player2
             print("player1 is white, player2 is black")
@@ -46,7 +53,7 @@ class Game:
             self.white_player = player2
             print("player1 is black, player2 is white")
 
-    def run(self):
+    def run(self) -> int:
         self.running = True
         if self.visuals:
             self.game_screen.draw_pieces(self.board)
@@ -61,10 +68,10 @@ class Game:
             if game_over:
                 self.running = False
         if self.visuals:
+            self.report_result()
             self.game_screen.display_game_over_message(self.board)
-
         self.running = False
-
+        return self.report_result()
 
 
     def fetch_play_update(self, player: Player, human, visual) -> bool:
@@ -99,3 +106,21 @@ class Game:
                 return self.board.is_game_over()
             self.game_screen.update(self.board)
 
+    def report_result(self) -> int:
+        result = self.board.result()
+        if result == "1-0":
+            winner = chess.WHITE
+
+        elif result == "0-1":
+            winner = chess.BLACK
+        else:
+            winner = None
+        if winner is None:
+            ret = 0
+        elif winner == self.colors[0]:
+            ret = 1
+        else:
+            ret = 2
+        self.white_player.report_game_over(winner)
+        self.black_player.report_game_over(winner)
+        return ret

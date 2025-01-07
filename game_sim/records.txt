@@ -1,0 +1,5 @@
+First 100 games:
+Stockfish elo=1320, timelimit=0.1
+BotV1 wins: 21
+Stockfish wins: 78
+Draws: 1

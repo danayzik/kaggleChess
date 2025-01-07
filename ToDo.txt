@@ -1,13 +1,19 @@
-In progress:
-- bot player
-- Game visuals/not/real player
-- Screen
-- remove visualizer
-- human player
+
+
+For botv2:
+- manually tune parameters.
+- split to 3 games stages
+- better king safety bonus
+- square values by piece
+- hanging piece?
+- Make weights so i can tune them later
+
+- Add eval to visuals
 
 
 AI:
-- Understand pruning
+- Genetic algo check
+
 
 Eval function:
 - Square ratings
@@ -21,7 +27,7 @@ Eval function:
 - pawn structure
 - Order moves in minimax
 - split via game stages
-- Openings
+
 
 
 
@@ -34,8 +40,6 @@ Training:
 Visuals:
 - Add Stockfish and our eval
 - in bot vs bot, make moves increment in steps
-- make board refresh after player move
-
 
 
 

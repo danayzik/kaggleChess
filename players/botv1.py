@@ -1,3 +1,4 @@
+
 from typing import Optional
 
 import chess
@@ -67,6 +68,7 @@ def evaluate_board(board: chess.Board) -> float:
 
 
 def minimax(board, depth, alpha, beta, is_maximizing):
+
     if depth == 0 or board.is_game_over():
         return evaluate_board(board), None
     best_move = None
