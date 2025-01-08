@@ -1,5 +1,9 @@
 - Many mini neural networks for heuristic eval function based on combination of pieces left.
-- Check cython
+- Learn about MCTS, implement MCTS based on remaining material
+- Implement a network that learns when to switch to MCTS
+
+avoid using gameover in cpp
+
 
 For botv2:
 - hanging piece?

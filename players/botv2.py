@@ -42,7 +42,6 @@ def sorted_legal_moves(board:chess.Board):
 
 def evaluate_piece(board, square, piece):
     phase_index = 1 if is_endgame(board) else 0
-
     piece_value = PIECE_VALUES[piece.piece_type]
     color = piece.color
     controlled_squares = board.attacks(square)
@@ -113,11 +112,9 @@ def minimax(board, depth, alpha, beta, is_maximizing):
             board.push(move)
             eval, _ = minimax(board, depth - 1, alpha, beta, True)
             board.pop()
-
             if eval <= min_eval:
                 min_eval = eval
                 best_move = move
-
             beta = min(beta, eval)
             if beta <= alpha:
                 break  # Alpha cutoff

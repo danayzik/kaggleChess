@@ -1,0 +1,218 @@
+#include "chesslib/include/chess.hpp"
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+using namespace chess;
+
+float INFINITY = 99999;
+float NEGATIVEINFINITY = -99999;
+
+const std::map<PieceType, float> PIECE_VALUES = {
+    {PieceType::PAWN, 100.0f},
+    {PieceType::KNIGHT, 300.0f},
+    {PieceType::BISHOP, 330.0f},
+    {PieceType::ROOK, 500.0f},
+    {PieceType::QUEEN, 900.0f},
+    {PieceType::KING, 0.0f}
+};
+
+std::map<PieceType, float> ATTACK_VALUES = {
+    {PieceType::PAWN, 5.0f},
+    {PieceType::KNIGHT, 10.0f},
+    {PieceType::BISHOP, 10.0f},
+    {PieceType::ROOK, 20.0f},
+    {PieceType::QUEEN, 30.0f},
+    {PieceType::KING, 50.0f}
+};
+
+std::map<PieceType, float> DEFEND_VALUES = {
+    {PieceType::PAWN, 20.0f},
+    {PieceType::KNIGHT, 10.0f},
+    {PieceType::BISHOP, 10.0f},
+    {PieceType::ROOK, 5.0f},
+    {PieceType::QUEEN, 0.0f},
+    {PieceType::KING, 0.0f}
+};
+
+std::vector<PieceType> pieces = {
+    PieceType::PAWN,
+    PieceType::KNIGHT,
+    PieceType::BISHOP,
+    PieceType::ROOK,
+    PieceType::QUEEN,
+    PieceType::KING
+};
+
+int countActiveBits(uint64_t num) {
+    return __builtin_popcountll(num);
+}
+
+bool isCheckMove(Board& board, const Move& move) {
+    board.makeMove(move);
+    bool isCheck = board.inCheck();
+    board.unmakeMove(move);
+    return isCheck;
+}
+
+
+void sortMovelist(Board& board, Movelist& moves) {
+    auto comparator = [&board](const Move &a, const Move &b) {
+        if (isCheckMove(board, a) && !isCheckMove(board, b)) return true;
+        if (!isCheckMove(board, a) && isCheckMove(board, b)) return false;
+
+        if (board.isCapture(a) && !board.isCapture(b)) return true;
+        if (!board.isCapture(a) && board.isCapture(b)) return false;
+
+        return false;
+    };
+    std::sort(moves.begin(), moves.end(), comparator);
+}
+
+float evaluatePawnAttacks(const Board& board, Bitboard pawnBitBoard, Color color){
+    Bitboard leftAttacks;
+    Bitboard rightAttacks;
+    float value = 0;
+    if (color == Color::WHITE) {
+        leftAttacks = attacks::pawnLeftAttacks<Color::WHITE>(pawnBitBoard);
+        rightAttacks = attacks::pawnRightAttacks<Color::WHITE>(pawnBitBoard);
+    }
+    else{
+        leftAttacks = attacks::pawnLeftAttacks<Color::BLACK>(pawnBitBoard);
+        rightAttacks = attacks::pawnRightAttacks<Color::BLACK>(pawnBitBoard);
+    }
+    Color enemy_color = ~color;
+    for(PieceType type : {PieceType::KNIGHT, PieceType::BISHOP,
+                          PieceType::ROOK, PieceType::QUEEN,
+                          PieceType::KING}){
+        Bitboard enemyPieceBitboard = board.pieces(type, enemy_color);
+        Bitboard leftAttackedPieces = enemyPieceBitboard & leftAttacks;
+        Bitboard rightAttackedPieces = enemyPieceBitboard & rightAttacks;
+        value += countActiveBits(leftAttackedPieces.getBits()) * ATTACK_VALUES[type];
+        value += countActiveBits(rightAttackedPieces.getBits()) * ATTACK_VALUES[type];
+
+    }
+}
+
+float evaluatePiece(const Board& board, Bitboard pieceBitBoard, PieceType pieceType, Color color) {
+
+    float value = PIECE_VALUES.at(pieceType) * static_cast<float>(countActiveBits(pieceBitBoard.getBits()));
+
+    // Controlled squares (attacks) by this piece
+    Bitboard controlled_squares = board.attacks(square);
+
+    // Row and file index based on the piece's position
+    int color_int = (color == Color::WHITE) ? 0 : 1;
+    int row_index = abs(color_int * 7 - squareRank(square)); // Adjust row index for color
+    int file_index = squareFile(square);
+
+    // Apply phase table (simplified)
+    piece_value += len(controlled_squares) * SQUARE_CONTROL_VALUE;
+    piece_value += PHASE_TABLES[phase_index][static_cast<int>(pieceType) - 1][row_index][file_index];
+
+    // Evaluate captured/defended pieces on controlled squares
+    for (int i = 0; i < 64; ++i) {
+        if ((controlled_squares >> i) & 1) {  // If this square is attacked by the piece
+            Square attacked_square = board.squareAt(i % 8, i / 8); // Convert bit position to square
+            PieceType attacked_piece = board.pieceAt(attacked_square);
+            if (attacked_piece) {
+                Color attacked_color = board.color(attacked_piece);
+                if (color == attacked_color) {
+                    piece_value += DEFEND_VALUES[static_cast<int>(attacked_piece) - 1];
+                } else {
+                    piece_value += ATTACK_VALUES[static_cast<int>(attacked_piece) - 1];
+                }
+            }
+        }
+    }
+
+    return piece_value;
+}
+
+float evaluate_board(const Board& board) {
+    std::pair<GameResultReason, GameResult> gameOverCheck = board.isGameOver();
+    GameResultReason resultReason = gameOverCheck.first;
+    if (resultReason == GameResultReason::CHECKMATE) {
+        return board.sideToMove() == Color::WHITE
+                   ? NEGATIVEINFINITY
+                   : INFINITY;
+    }
+    if (gameOverCheck.second == GameResult::DRAW) {
+        return 0.0f;
+    }
+    std::map<chess::Color, float> scores = {{Color::WHITE, 0.0f}, {Color::BLACK, 0.0f}};
+    float castle_rights_bonus = 50.0f;
+    Board::CastlingRights rights = board.castlingRights();
+    if (rights.has(Color::WHITE)) {
+        scores[Color::WHITE] += castle_rights_bonus;
+    }
+    if (rights.has(Color::BLACK)) {
+        scores[Color::BLACK] += castle_rights_bonus;
+    }
+    for (Color color : {Color::WHITE, Color::BLACK}) {
+        float colorScore = 0.0f;
+        for (PieceType type : pieces) {
+            Bitboard pieceBitboard = board.pieces(type, color);
+//            colorScore += evaluatePieces(pieces, type, color);
+        }
+        scores[color] += colorScore;
+    }
+
+    return scores[Color::WHITE] - scores[Color::BLACK];
+}
+
+std::pair<float, chess::Move> minimax(Board& board, int depth, float alpha, float beta, bool is_maximizing) {
+    auto [game_result_reason, game_result] = board.isGameOver();
+    if (depth == 0 || (game_result_reason != GameResultReason::NONE)) {
+        return {evaluate_board(board), NULL};
+    }
+    chess::Move best_move = NULL;
+    Movelist moves;
+    movegen::legalmoves(moves, board);
+    sortMovelist(board, moves);
+    if (is_maximizing) {
+        float max_eval = NEGATIVEINFINITY;
+        for (const Move& move : moves) {
+            board.makeMove(move);
+            auto [eval, _] = minimax(board, depth - 1, alpha, beta, false);
+            board.unmakeMove(move);
+            if (eval > max_eval) {
+                max_eval = eval;
+                best_move = move;
+            }
+            alpha = std::max(alpha, eval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return {max_eval, best_move};
+
+    } else {
+        float min_eval = INFINITY;
+        for (const chess::Move& move : moves) {
+            board.makeMove(move);
+            auto [eval, _] = minimax(board, depth - 1, alpha, beta, true);
+            board.unmakeMove(move);
+            if (eval < min_eval) {
+                min_eval = eval;
+                best_move = move;
+            }
+            beta = std::min(beta, eval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return {min_eval, best_move};
+    }
+}
+
+int main () {
+    Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Movelist moves;
+    movegen::legalmoves(moves, board);
+    for (const auto &move : moves) {
+        std::cout << uci::moveToUci(move) << std::endl;
+    }
+
+    return 0;
+}
