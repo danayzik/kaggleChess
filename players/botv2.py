@@ -143,11 +143,5 @@ class BotV2(Player):
 
 
 
-# board = chess.Board()
-# maximize = True
-# alpha = -float('inf')
-# beta = float('inf')
-# # minimax(board, 3, alpha, beta, maximize)
-# evaluate_board(board)
 
 

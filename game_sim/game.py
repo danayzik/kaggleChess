@@ -124,3 +124,6 @@ class Game:
         self.white_player.report_game_over(winner)
         self.black_player.report_game_over(winner)
         return ret
+import chess
+import os
+
