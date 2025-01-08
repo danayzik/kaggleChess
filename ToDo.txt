@@ -1,3 +1,15 @@
+Tomorrow:
+- Understand pesto
+- Check if a1 == index 0
+- Use pesto
+- Refactor cpp code, make github
+- Test cpp
+- Update rider on both laptop and pc
+- Compile, make python api
+- Sign up to competition
+- Submit to competition
+
+
 - Many mini neural networks for heuristic eval function based on combination of pieces left.
 - Learn about MCTS, implement MCTS based on remaining material
 - Implement a network that learns when to switch to MCTS
@@ -8,7 +20,6 @@ avoid using gameover in cpp
 For botv2:
 - hanging piece?
 - Make weights so i can tune them later
-
 - Add eval to visuals
 
 
