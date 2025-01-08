@@ -1,4 +1,5 @@
-
+- Many mini neural networks for heuristic eval function based on combination of pieces left.
+- Check cython
 
 For botv2:
 - hanging piece?
@@ -12,7 +13,7 @@ AI:
 
 
 Eval function:
-- Square ratings
+- get better square ratings
 - Rook on king/queen row/column
 - Bishop on king/queen diagonal
 - Controlling squares
@@ -21,11 +22,14 @@ Eval function:
 - king safety
 - Castling bonus
 - pawn structure
-- Order moves in minimax
+
 - split via game stages
 
-
-
+search:
+- Order moves in minimax
+-extensions
+-Iterative
+-Quiescence
 
 Training:
 - Get games database

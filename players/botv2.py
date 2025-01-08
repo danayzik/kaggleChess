@@ -2,6 +2,16 @@ from typing import Optional
 import chess
 from players.bot_v2_constants import *
 from players.player import Player
+import time
+
+def time_it(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"{func.__name__} took {end_time - start_time:.6f} seconds")
+        return result
+    return wrapper
 
 def piece_values(piece_type: int) -> int:
     if piece_type == chess.QUEEN:
@@ -30,16 +40,16 @@ def sorted_legal_moves(board:chess.Board):
     )
     return sorted_moves
 
-def evaluate_piece(board, square, piece, piece_char):
+def evaluate_piece(board, square, piece):
     phase_index = 1 if is_endgame(board) else 0
-    piece_enum = CHAR_TO_PIECE[piece_char]
-    piece_value = PIECE_VALUES[piece_enum]
+
+    piece_value = PIECE_VALUES[piece.piece_type]
     color = piece.color
     controlled_squares = board.attacks(square)
-    color_int = 0 if piece.color == chess.WHITE else 1
+    color_int = 0 if color == chess.WHITE else 1
     piece_index =  piece.piece_type-1
     row_index = abs(color_int*7 - chess.square_rank(square))
-    file_index = chess.square_rank(square)
+    file_index = chess.square_file(square)
     piece_value += len(controlled_squares) * SQUARE_CONTROL_VALUE + PHASE_TABLES[phase_index][piece_index][row_index][file_index]
     for square in controlled_squares:
         controlled_piece = board.piece_at(square)
@@ -53,6 +63,7 @@ def evaluate_piece(board, square, piece, piece_char):
 
 def is_draw(board: chess.Board) -> bool:
     return board.is_stalemate() or board.is_fifty_moves() or board.is_repetition() or board.is_fifty_moves()
+
 
 def evaluate_board(board: chess.Board) -> float:
     if board.is_checkmate():
@@ -70,9 +81,10 @@ def evaluate_board(board: chess.Board) -> float:
     scores[chess.WHITE] += white_bonus
     scores[chess.BLACK] += black_bonus
     for square, piece in board.piece_map().items():
-        value = evaluate_piece(board, square, piece, piece.symbol())
+        value = evaluate_piece(board, square, piece)
         scores[piece.color] += value
     evaluation = scores[chess.WHITE] - scores[chess.BLACK]
+
     return evaluation
 
 
@@ -87,11 +99,9 @@ def minimax(board, depth, alpha, beta, is_maximizing):
             board.push(move)
             eval, _ = minimax(board, depth - 1, alpha, beta, False)
             board.pop()
-
             if eval >= max_eval:
                 max_eval = eval
                 best_move = move
-
             alpha = max(alpha, eval)
             if beta <= alpha:
                 break
@@ -111,7 +121,6 @@ def minimax(board, depth, alpha, beta, is_maximizing):
             beta = min(beta, eval)
             if beta <= alpha:
                 break  # Alpha cutoff
-
         return min_eval, best_move
 
 class BotV2(Player):
@@ -134,5 +143,11 @@ class BotV2(Player):
 
 
 
+# board = chess.Board()
+# maximize = True
+# alpha = -float('inf')
+# beta = float('inf')
+# # minimax(board, 3, alpha, beta, maximize)
+# evaluate_board(board)
 
 

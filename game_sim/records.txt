@@ -3,3 +3,10 @@ Stockfish elo=1320, timelimit=0.1
 BotV1 wins: 21
 Stockfish wins: 78
 Draws: 1
+
+
+second version:
+Game 100 finished
+BotV2 wins: 19
+Stockfish wins: 75   elo=1320, timelimit=0.1
+Draws: 6
