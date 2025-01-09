@@ -1,53 +1,26 @@
-#include "chesslib/include/chess.hpp"
+#ifndef EVALUATION_H
+#define EVALUATION_H
+
+#include "chess.hpp"
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <map>
 using namespace chess;
-#include "evaluation.h"
 
-#ifndef UNTITLED_EVALUATION_H
-#define UNTITLED_EVALUATION_H
+constexpr int16_t INFINITY = 32767;
+constexpr int16_t NEGATIVEINFINITY = -32768;
+constexpr int8_t castle_rights_bonus = 30;
 
-const std::map<PieceType, int16_t> PIECE_VALUES = {
-    {PieceType::PAWN, 100},
-    {PieceType::KNIGHT, 300},
-    {PieceType::BISHOP, 330},
-    {PieceType::ROOK, 500},
-    {PieceType::QUEEN, 900},
-    {PieceType::KING, 0}
-};
+extern std::map<PieceType, int16_t> ATTACK_VALUES;
 
-std::map<PieceType, int16_t> ATTACK_VALUES = {
-    {PieceType::PAWN, 5},
-    {PieceType::KNIGHT, 1},
-    {PieceType::BISHOP, 1},
-    {PieceType::ROOK, 2},
-    {PieceType::QUEEN, 3},
-    {PieceType::KING, 5}
-};
+extern std::map<PieceType, int16_t> DEFEND_VALUES;
 
-std::map<PieceType, int16_t> DEFEND_VALUES = {
-    {PieceType::PAWN, 20},
-    {PieceType::KNIGHT, 10},
-    {PieceType::BISHOP, 10},
-    {PieceType::ROOK, 5},
-    {PieceType::QUEEN, 0},
-    {PieceType::KING, 0}
-};
+extern std::vector<PieceType> pieces;
 
-std::vector<PieceType> pieces = {
-    PieceType::PAWN,
-    PieceType::KNIGHT,
-    PieceType::BISHOP,
-    PieceType::ROOK,
-    PieceType::QUEEN,
-    PieceType::KING
-};
+int16_t evaluatePieces(const chess::Board& board);
+std::vector<Square> getOccupiedSquares(Bitboard bitboard);
+int16_t countActiveBits(uint64_t num);
+int16_t evaluate_board(const Board& board);
 
-class evaluation {
-
-};
-
-
-#endif //UNTITLED_EVALUATION_H
+#endif // EVALUATION_H

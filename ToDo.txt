@@ -1,13 +1,12 @@
 Tomorrow:
-- Understand pesto
-- Check if a1 == index 0
-- Use pesto
+
 - Refactor cpp code, make github
 - Test cpp
 - Update rider on both laptop and pc
 - Compile, make python api
 - Sign up to competition
 - Submit to competition
+- Think about how if you train by minimax or by evaluation
 
 
 - Many mini neural networks for heuristic eval function based on combination of pieces left.
