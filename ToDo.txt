@@ -1,8 +1,4 @@
-Tomorrow:
-FIX CPP NOT RECOGNIZING THREEFOLD
-UP ATTACK VALUES
-
-- check fifty moves and other stuff for kaggle rules
+My bot isn't killed cause it's not getting end signal
 
 MVV-LVA ordering
 pins or skewers). ordering
@@ -13,10 +9,8 @@ Small opt:
 - Refactor eval function
 - since i'm saving board state, evaluate based on what changed only. (specifically mg and eg phase)
 -Order captures by smallest value first
-
-
-
-
+- ischeckmove called multiple times
+-transpoisition during search
 - Refactor cpp code, make github
 - Test cpp
 - Update rider on both laptop and pc

@@ -1,8 +1,6 @@
 from typing import Optional
 import chess
 
-
-from players.bot_v2_constants import *
 from players.player import Player
 import subprocess
 import os
@@ -58,8 +56,7 @@ class TestBotApi(Player):
 
     def read_move(self):
         output = self.bot.stdout.readline()
-        self.bot.stdout.readline()
-        # print(self.bot.stdout.readline())
+
 
         return output.strip()
 
