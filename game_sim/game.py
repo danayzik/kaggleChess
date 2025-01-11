@@ -30,7 +30,7 @@ class Game:
     def __init__(self, player1: Player, player2: Player, visual=False):
         self.board = chess.Board()
         fen = random.choice(OPENINGS)
-        # fen = "8/6k1/8/8/8/7r/4K3/8 w - - 0 1"
+        # fen = "8/8/8/5R2/3k2K1/8/8/8 w - - 0 1"
         self.board.set_fen(fen)
         if visual:
             self.game_screen = GameScreen()
@@ -45,7 +45,8 @@ class Game:
         self.visuals = visual
         self.last_move: Optional[chess.Move] = None
 
-
+    def is_game_over(self) -> bool:
+        return self.board.is_game_over() or self.board.can_claim_fifty_moves() or self.board.is_repetition()
 
     def assign_colors(self, player1: Player, player2: Player) -> None:
         random.shuffle(self.colors)
@@ -96,7 +97,7 @@ class Game:
                     pygame.quit()
                     exit(0)
             self.game_screen.update(self.board)
-        return self.board.is_game_over(claim_draw=True)
+        return self.is_game_over()
 
     def handle_human_move(self, player: Player) -> bool:
         is_move = False
@@ -119,7 +120,7 @@ class Game:
                 self.board.push(potential_move)
                 self.last_move = potential_move
                 self.game_screen.update(self.board)
-                return self.board.is_game_over(claim_draw=True)
+                return self.is_game_over()
             self.game_screen.update(self.board)
 
     def report_result(self) -> int:
