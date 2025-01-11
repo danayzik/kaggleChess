@@ -19,16 +19,19 @@ class StockfishPlayer(Player):
         self.engine.quit()
         if winner is None:
             print("Draw")
-        if winner == self.color:
+        elif winner == self.color:
             print("stockfish wins")
         else:
             print("stockfish loses")
 
 
 
+    def get_move(self, move: chess.Move) -> chess.Move:
 
-    def get_move(self, board: chess.Board) -> chess.Move:
-        result = self.engine.play(board, chess.engine.Limit(time=self.time_limit))
+        if move is not None:
+            self.board.push(move)
+        result = self.engine.play(self.board, chess.engine.Limit(time=self.time_limit))
+        self.board.push(result.move)
         return result.move
 
 

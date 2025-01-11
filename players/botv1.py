@@ -6,7 +6,7 @@ from pygame import Surface
 from players.bot_v1_constants import *
 from players.player import Player
 
-
+#Depreceated, need get move to receive move not board
 def sorted_legal_moves(board:chess.Board):
     legal_moves = list(board.legal_moves)
     sorted_moves = sorted(

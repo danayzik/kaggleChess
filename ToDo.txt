@@ -1,4 +1,21 @@
 Tomorrow:
+FIX CPP NOT RECOGNIZING THREEFOLD
+UP ATTACK VALUES
+
+- check fifty moves and other stuff for kaggle rules
+
+MVV-LVA ordering
+pins or skewers). ordering
+
+Small opt:
+-Use chess lib flip in cpp instead of pesto
+- Don't use isGameOver, especially not twice
+- Refactor eval function
+- since i'm saving board state, evaluate based on what changed only. (specifically mg and eg phase)
+-Order captures by smallest value first
+
+
+
 
 - Refactor cpp code, make github
 - Test cpp

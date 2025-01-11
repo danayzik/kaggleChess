@@ -7,9 +7,10 @@ from pygame import Surface
 class Player(ABC):
     def __init__(self):
         self.color: Optional[chess.Color] = None
+        self.board: Optional[chess.Board] = None
 
     @abstractmethod
-    def get_move(self, board: chess.Board) -> chess.Move:
+    def get_move(self, move: chess.Move) -> chess.Move:
         pass
 
 
@@ -18,6 +19,8 @@ class Player(ABC):
         pass
 
 
+    def setup_board(self, fen: str) -> None:
+        self.board = chess.Board(fen)
 
 
     def get_clicked_piece(self, board: chess.Board, screen: Surface) -> tuple[chess.Piece, chess.Square]:

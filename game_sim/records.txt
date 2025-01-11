@@ -10,3 +10,13 @@ Game 100 finished
 BotV2 wins: 19
 Stockfish wins: 75   elo=1320, timelimit=0.1
 Draws: 6
+
+Pesto+attack+defend: //Can't finish many games due to no incentive to get close
+BotV1 wins: 26
+Stockfish wins: 59  elo=1320, timelimit=0.1
+Draws: 15
+
+
+BotV3 wins: 29
+Stockfish wins: 62
+Draws: 9

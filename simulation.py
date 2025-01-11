@@ -27,41 +27,49 @@ games = 1
 counter_lock = Lock()
 
 @time_it
-def play_game():
+def human_vs_bot():
     global botv1_wins, stockfish_wins, draws, games
     p1 = TestBotApi()
-    # p1 = BotV2()
-    # p2 = BotV1()
-    p2 = StockfishPlayer()
-    p2.set_engine_strength(1320, 0.1)
-    g = Game(p1, p2, False)
+    p2 = HumanPlayer()
+
+    g = Game(p1, p2, True)
     res = g.run()
-    # with counter_lock:
-    #     if res == 1:
-    #         botv1_wins += 1
-    #     elif res == 2:
-    #         stockfish_wins += 1
-    #     elif res == 0:
-    #         draws += 1
-    #     print(f"Game {games} finished")
-    #     games += 1
+
 
 def run_games_in_threads():
     num_threads = 10
     iterations_per_thread = 10
 
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
-        futures = [executor.submit(play_game) for _ in range(num_threads * iterations_per_thread)]
+        futures = [executor.submit(bot_vs_stockfish) for _ in range(num_threads * iterations_per_thread)]
 
     for future in futures:
         future.result()
+    print(f"BotV1 wins: {botv1_wins}")
+    print(f"Stockfish wins: {stockfish_wins}")
+    print(f"Draws: {draws}")
+
+@time_it
+def bot_vs_stockfish():
+    global botv1_wins, stockfish_wins, draws, games
+    p1 = TestBotApi()
+    p2 = StockfishPlayer()
+    p2.set_engine_strength(1320, 0.1)
+    g = Game(p1, p2, False)
+    res = g.run()
+    with counter_lock:
+        if res == 1:
+            botv1_wins += 1
+        elif res == 2:
+            stockfish_wins += 1
+        elif res == 0:
+            draws += 1
+        print(f"Game {games} finished")
+        games += 1
 
 if __name__ == "__main__":
-    play_game()
-    # run_games_in_threads()
-    # print(f"BotV1 wins: {botv1_wins}")
-    # print(f"Stockfish wins: {stockfish_wins}")
-    # print(f"Draws: {draws}")
+    run_games_in_threads()
+
 
 
 

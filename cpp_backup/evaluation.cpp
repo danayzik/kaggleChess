@@ -3,16 +3,16 @@
 #include "evaluation.h"
 #include "game_tables.h"
 
-std::map<PieceType, int16_t> ATTACK_VALUES = {
+std::map<PieceType, int> ATTACK_VALUES = {
         {PieceType::PAWN, 5},
-        {PieceType::KNIGHT, 1},
-        {PieceType::BISHOP, 1},
-        {PieceType::ROOK, 2},
-        {PieceType::QUEEN, 3},
-        {PieceType::KING, 5}
+        {PieceType::KNIGHT, 8},
+        {PieceType::BISHOP, 8},
+        {PieceType::ROOK, 10},
+        {PieceType::QUEEN, 15},
+        {PieceType::KING, 15}
 };
 
-std::map<PieceType, int16_t> DEFEND_VALUES = {
+std::map<PieceType, int> DEFEND_VALUES = {
         {PieceType::PAWN, 20},
         {PieceType::KNIGHT, 10},
         {PieceType::BISHOP, 10},
@@ -30,8 +30,24 @@ std::vector<PieceType> pieces = {
         PieceType::KING
 };
 
-int16_t countActiveBits(uint64_t num) {
-    return static_cast<int16_t >(__builtin_popcountll(num));
+std::pair<GameResultReason, GameResult> gameOver(Board& board)  {
+    if (board.isHalfMoveDraw()) return board.getHalfMoveDrawType();
+    if (board.isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
+    if (board.isRepetition(1)) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
+
+    Movelist movelist;
+    movegen::legalmoves(movelist, board);
+
+    if (movelist.empty()) {
+        if (board.inCheck()) return {GameResultReason::CHECKMATE, GameResult::LOSE};
+        return {GameResultReason::STALEMATE, GameResult::DRAW};
+    }
+
+    return {GameResultReason::NONE, GameResult::NONE};
+}
+
+int countActiveBits(uint64_t num) {
+    return static_cast<int >(__builtin_popcountll(num));
 }
 
 std::vector<Square> getOccupiedSquares(Bitboard bitboard) {
@@ -46,16 +62,14 @@ std::vector<Square> getOccupiedSquares(Bitboard bitboard) {
 
 
 
-int16_t evaluate_board(const Board& board) {
-    int16_t evaluation = 0;
-    std::pair<GameResultReason, GameResult> gameOverCheck = board.isGameOver();
-    GameResultReason resultReason = gameOverCheck.first;
-    if (resultReason == GameResultReason::CHECKMATE) {
+int evaluate_board(const Board& board, GameResult result, GameResultReason reason) {
+    int evaluation = 0;
+    if (reason == GameResultReason::CHECKMATE) {
         return board.sideToMove() == Color::WHITE
                ? NEGATIVEINFINITY
                : INFINITY;
     }
-    if (gameOverCheck.second == GameResult::DRAW) {
+    if (result == GameResult::DRAW) {
         return 0;
     }
     Board::CastlingRights rights = board.castlingRights();
@@ -70,14 +84,44 @@ int16_t evaluate_board(const Board& board) {
     return evaluation;
 }
 
-int16_t evaluatePieces(const chess::Board& board) {
+int endgameMateEval(Square whiteKingSquare, Square blackKingSquare, int egPhase, int currEval){
+    std::vector<Square> cornerSquares = {Square(0), Square(7), Square(63), Square(56)};
+    int maxWhiteDistance = 0;
+    int maxBlackDistance = 0;
+    int egWeight = egPhase;
+    int eval = 0;
+    int distanceBetweenKings = Square::distance(whiteKingSquare, blackKingSquare);
+
+    for (const auto& corner : cornerSquares) {
+        maxWhiteDistance = std::min(maxWhiteDistance, Square::distance(whiteKingSquare, corner));
+    }
+
+    for (const auto& corner : cornerSquares) {
+        maxBlackDistance = std::min(maxBlackDistance, Square::distance(blackKingSquare, corner));
+    }
+    if (currEval>=0){
+        eval += (3 - maxBlackDistance)*egWeight;
+        eval += (7 - distanceBetweenKings)*egWeight;
+    }
+    else{
+        eval -= (3 - maxWhiteDistance)*egWeight;
+        eval -= (7 - distanceBetweenKings)*egWeight;
+    }
+  
+
+
+    return eval;
+
+}
+
+int evaluatePieces(const chess::Board& board) {
     std::map<std::pair<PieceType, Color>, Bitboard> pieceToBitboardMap;
     chess::Color white = chess::Color::WHITE;
     chess::Color black = ~white;
-    std::array<int16_t, 2> scores = {0, 0};
-    std::array<int16_t, 2> mg = {0, 0};
-    std::array<int16_t, 2> eg = {0, 0};
-    int16_t gamePhase = 0;
+    std::array<int, 2> scores = {0, 0};
+    std::array<int, 2> mg = {0, 0};
+    std::array<int, 2> eg = {0, 0};
+    int gamePhase = 0;
 
     Bitboard allBits = board.occ();
     std::vector<PieceType> blockedPieces = {PieceType::BISHOP, PieceType::ROOK, PieceType::QUEEN};
@@ -124,11 +168,10 @@ int16_t evaluatePieces(const chess::Board& board) {
 
     // King eval
     for (chess::Color color : {white, black}){
-        int colorIndex = static_cast<std::int8_t>(color);
+        int colorIndex = static_cast<int>(color);
         Square sqr = board.kingSq(color);
         int sqrIndex = sqr.index();
-
-        int pc = static_cast<std::int8_t>(PieceType::KING) * 2 + colorIndex;
+        int pc = static_cast<int>(PieceType::KING) * 2 + colorIndex;
         mg[colorIndex] += mg_table[pc][sqrIndex];
         eg[colorIndex] += eg_table[pc][sqrIndex];
         gamePhase += gamephaseInc[pc];
@@ -145,14 +188,16 @@ int16_t evaluatePieces(const chess::Board& board) {
 
     // Knight eval
     for (chess::Color color : {white, black}){
-        int colorIndex = static_cast<int8_t>(color);
+        int colorIndex = static_cast<int>(color);
         std::vector<Square> squares = pieceColorToSquares[{PieceType::KNIGHT, color}];
-        int pc = static_cast<std::int8_t>(PieceType::KNIGHT) * 2 + colorIndex;
+        int pc = static_cast<int>(PieceType::KNIGHT) * 2 + colorIndex;
+
         for (Square sqr: squares) {
             int sqrIndex = sqr.index();
             mg[colorIndex] += mg_table[pc][sqrIndex];
             eg[colorIndex] += eg_table[pc][sqrIndex];
             gamePhase += gamephaseInc[pc];
+
             Bitboard attackedSquares = attacks::knight(sqr);
             for(PieceType type : pieces){
                 Bitboard enemyPieceBitboard = pieceToBitboardMap[{type, ~color}];
@@ -170,15 +215,16 @@ int16_t evaluatePieces(const chess::Board& board) {
     Bitboard leftAttacks;
     Bitboard rightAttacks;
     for (chess::Color color : {white, black}) {
-        int colorIndex = static_cast<int8_t>(color);
+        int colorIndex = static_cast<int>(color);
         std::vector<Square> squares = pieceColorToSquares[{PieceType::PAWN, color}];
-        int pc = static_cast<std::int8_t>(PieceType::PAWN) * 2 + colorIndex;
-        for (Square sqr : squares){
-            int8_t sqrIndex = sqr.index();
+        int pc = static_cast<int>(PieceType::PAWN) * 2 + colorIndex;
 
+        for (Square sqr : squares){
+            int sqrIndex = sqr.index();
             mg[colorIndex] += mg_table[pc][sqrIndex];
             eg[colorIndex] += eg_table[pc][sqrIndex];
             gamePhase += gamephaseInc[pc];
+
         }
         if (color == Color::WHITE) {
             leftAttacks = attacks::pawnLeftAttacks<Color::WHITE>(pieceToBitboardMap[{PieceType::PAWN, color}]);
@@ -206,16 +252,20 @@ int16_t evaluatePieces(const chess::Board& board) {
 
     // Bishop, Rook, Queen control values
     for (chess::Color color : {white, black}) {
-        int colorIndex = static_cast<int8_t>(color);
+        int colorIndex = static_cast<int>(color);
         for (chess::PieceType type: blockedPieces) {
             std::vector<Square> squares = pieceColorToSquares[{type, color}];
-            int pc = static_cast<std::int8_t>(type) * 2 + colorIndex;
+            int pc = static_cast<int>(type) * 2 + colorIndex;
+
             for (Square sqr : squares){
-                int8_t sqrIndex = sqr.index();
+                int sqrIndex = sqr.index();
                 mg[colorIndex] += mg_table[pc][sqrIndex];
                 eg[colorIndex] += eg_table[pc][sqrIndex];
                 gamePhase += gamephaseInc[pc];
+
                 Bitboard attacks = pieceTypeToAttackFunction[type](sqr, allBits);
+
+
                 for(PieceType controlled_type : pieces){
                     Bitboard enemyPieceBitboard = pieceToBitboardMap[{controlled_type, ~color}];
                     Bitboard friendlyPieceBitboard = pieceToBitboardMap[{controlled_type, color}];
@@ -229,13 +279,12 @@ int16_t evaluatePieces(const chess::Board& board) {
         }
     }
 
-
-    int16_t eval = scores[0] - scores[1];
-    int16_t mgScore = mg[0] - mg[1];
-    int16_t egScore = eg[0] - eg[1];
-    int16_t mgPhase = gamePhase > 24 ? 24 : gamePhase;
-    int16_t egPhase = 24 - mgPhase;
-
+    int eval = scores[0] - scores[1];
+    int mgScore = mg[0] - mg[1];
+    int egScore = eg[0] - eg[1];
+    int mgPhase = gamePhase > 24 ? 24 : gamePhase;
+    int egPhase = 24 - mgPhase;
     eval += (mgScore * mgPhase + egScore * egPhase) / 24;
+    eval += endgameMateEval(board.kingSq(white), board.kingSq(black), egPhase, eval);
     return eval;
 }

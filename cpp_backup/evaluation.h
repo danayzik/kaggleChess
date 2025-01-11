@@ -8,19 +8,20 @@
 #include <map>
 using namespace chess;
 
-constexpr int16_t INFINITY = 32767;
-constexpr int16_t NEGATIVEINFINITY = -32768;
-constexpr int8_t castle_rights_bonus = 30;
+constexpr int INFINITY = 32767;
+constexpr int NEGATIVEINFINITY = -32768;
+constexpr int castle_rights_bonus = 10;
 
-extern std::map<PieceType, int16_t> ATTACK_VALUES;
+extern std::map<PieceType, int> ATTACK_VALUES;
 
-extern std::map<PieceType, int16_t> DEFEND_VALUES;
+extern std::map<PieceType, int> DEFEND_VALUES;
 
 extern std::vector<PieceType> pieces;
 
-int16_t evaluatePieces(const chess::Board& board);
+int evaluatePieces(const chess::Board& board);
 std::vector<Square> getOccupiedSquares(Bitboard bitboard);
-int16_t countActiveBits(uint64_t num);
-int16_t evaluate_board(const Board& board);
-
+int countActiveBits(uint64_t num);
+int evaluate_board(const Board& board, GameResult result, GameResultReason reason);
+int endgameMateEval(Square whiteKingSquare, Square blackKingSquare, int egPhase, int currEval);
+std::pair<GameResultReason, GameResult> gameOver(Board& board);
 #endif // EVALUATION_H

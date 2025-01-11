@@ -4,6 +4,8 @@ from players.bot_v2_constants import *
 from players.player import Player
 import time
 
+
+#Depreceated, need get move to receive move not board
 def time_it(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()

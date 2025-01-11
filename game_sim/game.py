@@ -1,7 +1,10 @@
+from typing import Optional
+
 from game_sim.game_screen import GameScreen
 from players.player import Player
 import random
 import chess
+import pygame
 
 OPENINGS = [
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
@@ -27,6 +30,7 @@ class Game:
     def __init__(self, player1: Player, player2: Player, visual=False):
         self.board = chess.Board()
         fen = random.choice(OPENINGS)
+        # fen = "8/6k1/8/8/8/7r/4K3/8 w - - 0 1"
         self.board.set_fen(fen)
         if visual:
             self.game_screen = GameScreen()
@@ -35,13 +39,17 @@ class Game:
         self.black_player = player2
         self.colors = [chess.WHITE, chess.BLACK]
         self.assign_colors(player1, player2)
+        self.white_player.setup_board(fen)
+        self.black_player.setup_board(fen)
         self.running = False
         self.visuals = visual
+        self.last_move: Optional[chess.Move] = None
 
 
 
     def assign_colors(self, player1: Player, player2: Player) -> None:
         random.shuffle(self.colors)
+
         player1.set_color(self.colors[0])
         player2.set_color(self.colors[1])
         if chess.WHITE == self.colors[0]:
@@ -61,6 +69,7 @@ class Game:
         black_human = self.black_player.is_human()
         visual = self.visuals or white_human or black_human
         while self.running:
+
             game_over = self.fetch_play_update(self.white_player, white_human, visual)
             if game_over:
                 break
@@ -77,11 +86,17 @@ class Game:
     def fetch_play_update(self, player: Player, human, visual) -> bool:
         if human:
             return self.handle_human_move(player)
-        move = player.get_move(self.board.copy())
+        move = player.get_move(self.last_move)
         self.board.push(move)
+        self.last_move = move
         if visual:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.report_result()
+                    pygame.quit()
+                    exit(0)
             self.game_screen.update(self.board)
-        return self.board.is_game_over()
+        return self.board.is_game_over(claim_draw=True)
 
     def handle_human_move(self, player: Player) -> bool:
         is_move = False
@@ -102,8 +117,9 @@ class Game:
             is_move = self.board.is_legal(potential_move)
             if is_move:
                 self.board.push(potential_move)
+                self.last_move = potential_move
                 self.game_screen.update(self.board)
-                return self.board.is_game_over()
+                return self.board.is_game_over(claim_draw=True)
             self.game_screen.update(self.board)
 
     def report_result(self) -> int:
@@ -124,6 +140,5 @@ class Game:
         self.white_player.report_game_over(winner)
         self.black_player.report_game_over(winner)
         return ret
-import chess
-import os
+
 

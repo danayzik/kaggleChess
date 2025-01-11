@@ -19,13 +19,13 @@ class HumanPlayer(Player):
     def __init__(self):
         super().__init__()
 
-    def get_move(self, board: chess.Board) -> chess.Move:
+    def get_move(self, move: chess.Move) -> chess.Move:
         pass
 
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
         if winner is None:
             print("drew")
-        if winner == self.color:
+        elif winner == self.color:
             print("I won")
         else:
             print("I lost")
