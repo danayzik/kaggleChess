@@ -114,7 +114,7 @@ int endgameMateEval(Square whiteKingSquare, Square blackKingSquare, int egPhase,
 
 }
 
-int evaluatePieces(const chess::Board& board) {
+int evaluatePieces(const Board& board) {
     std::map<std::pair<PieceType, Color>, Bitboard> pieceToBitboardMap;
     chess::Color white = chess::Color::WHITE;
     chess::Color black = ~white;

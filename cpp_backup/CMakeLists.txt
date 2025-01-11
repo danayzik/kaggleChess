@@ -9,7 +9,8 @@ add_executable(chessBot
         main.cpp          # Your main source file
         game_tables.cpp        # Add this line to include tables.cpp where initTables() is defined
         evaluation.cpp    # Add any other .cpp files as needed
-        search.cpp        # If search.cpp is involved, include it too
+        search.cpp
+        game_tables.cpp        # If search.cpp is involved, include it too
 )
 
 # Add any additional libraries or dependencies here if needed

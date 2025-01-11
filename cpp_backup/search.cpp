@@ -25,8 +25,6 @@ void sortMovelist(Board& board, Movelist& moves) {
 
         return false;
     };
-
-
     std::sort(moves.begin(), moves.end(), comparator);
 
 }
@@ -34,11 +32,10 @@ void sortMovelist(Board& board, Movelist& moves) {
 
 
 
-std::pair<int , chess::Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing, bool inSearch) {
+std::pair<int , chess::Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing) {
     GameResultReason game_result_reason;
     GameResult game_result;
     std::pair<GameResultReason, GameResult> gameOverCheck;
-
     gameOverCheck = board.isGameOver();
     game_result_reason = gameOverCheck.first;
     game_result = gameOverCheck.second;
@@ -51,36 +48,36 @@ std::pair<int , chess::Move> minimax(Board& board, int depth, int alpha, int bet
     sortMovelist(board, moves);
     if (is_maximizing) {
         int max_eval = NEGATIVEINFINITY;
-        for (const Move& move : moves) {
+        for (auto move : moves) {
             board.makeMove(move);
-            auto [eval, _] = minimax(board, depth - 1, alpha, beta, false, true);
+            auto [eval, _] = minimax(board, depth - 1, alpha, beta, false);
             board.unmakeMove(move);
             if (eval >= max_eval) {
                 max_eval = eval;
                 best_move = move;
             }
-            alpha = std::max(alpha, eval);
-            if (beta <= alpha) {
+            if (eval >= beta) {
                 break;
             }
+            alpha = std::max(alpha, eval);
         }
         return {max_eval, best_move};
 
-    } else {
+    }
+    else {
         int min_eval = INFINITY;
-        for (const chess::Move& move : moves) {
-
+        for (auto move : moves) {
             board.makeMove(move);
-            auto [eval, _] = minimax(board, depth - 1, alpha, beta, true, true);
+            auto [eval, _] = minimax(board, depth - 1, alpha, beta, true);
             board.unmakeMove(move);
             if (eval <= min_eval) {
                 min_eval = eval;
                 best_move = move;
             }
-            beta = std::min(beta, eval);
-            if (beta <= alpha) {
+            if (eval <= alpha) {
                 break;
             }
+            beta = std::min(beta, eval);
         }
         return {min_eval, best_move};
     }
