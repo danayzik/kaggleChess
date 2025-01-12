@@ -30,7 +30,7 @@ class Game:
     def __init__(self, player1: Player, player2: Player, visual=False):
         self.board = chess.Board()
         fen = random.choice(OPENINGS)
-        # fen = "8/8/8/5R2/3k2K1/8/8/8 w - - 0 1"
+        # fen = "8/8/8/3k4/5PK1/8/8/8 w - - 0 1"
         self.board.set_fen(fen)
         if visual:
             self.game_screen = GameScreen()

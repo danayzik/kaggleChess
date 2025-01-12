@@ -20,3 +20,12 @@ Draws: 15
 BotV3 wins: 29
 Stockfish wins: 62
 Draws: 9
+
+BotV1 wins: 32
+Stockfish wins: 57
+Draws: 11
+
+depth 4
+BotV1 wins: 44
+Stockfish wins: 33
+Draws: 23
