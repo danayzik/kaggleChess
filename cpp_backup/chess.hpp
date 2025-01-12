@@ -729,7 +729,7 @@ class attacks {
     // Slow function to calculate rook attacks
     [[nodiscard]] static Bitboard rookAttacks(Square sq, Bitboard occupied);
 
-    // Initializes the magic bitboard tables for sliding pieces
+    // Initializes the magic bitboard tables for sliding PIECETYPES
     static void initSliders(Square sq, Magic table[], U64 magic,
                             const std::function<Bitboard(Square, Bitboard)> &attacks);
 
@@ -2274,7 +2274,7 @@ class Board {
     [[nodiscard]] Bitboard occ() const { return occ_bb_[0] | occ_bb_[1]; }
 
     /**
-     * @brief Get the occupancy bitboard for all pieces, should be only used internally.
+     * @brief Get the occupancy bitboard for all PIECETYPES, should be only used internally.
      * @return
      */
     [[nodiscard]] Bitboard all() const { return us(Color::WHITE) | us(Color::BLACK); }
@@ -2290,7 +2290,7 @@ class Board {
     }
 
     /**
-     * @brief Returns all pieces of a certain type and color
+     * @brief Returns all PIECETYPES of a certain type and color
      * @param type
      * @param color
      * @return
@@ -2298,7 +2298,7 @@ class Board {
     [[nodiscard]] Bitboard pieces(PieceType type, Color color) const { return pieces_bb_[type] & occ_bb_[color]; }
 
     /**
-     * @brief Returns all pieces of a certain type
+     * @brief Returns all PIECETYPES of a certain type
      * @param type
      * @return
      */
@@ -2595,10 +2595,10 @@ class Board {
         /**
          * A compact board representation can be achieved in 24 bytes,
          * we use 8 bytes (64bit) to store the occupancy bitboard,
-         * and 16 bytes (128bit) to store the pieces (plus some special information).
+         * and 16 bytes (128bit) to store the PIECETYPES (plus some special information).
          *
-         * Each of the 16 bytes can store 2 pieces, since chess only has 12 different pieces,
-         * we can represent the pieces from 0 to 11 in 4 bits (a nibble) and use the other 4 bit for
+         * Each of the 16 bytes can store 2 PIECETYPES, since chess only has 12 different PIECETYPES,
+         * we can represent the PIECETYPES from 0 to 11 in 4 bits (a nibble) and use the other 4 bit for
          * the next piece.
          * Since we need to store information about enpassant, castling rights and the side to move,
          * we can use the remaining 4 bits to store this information.
@@ -2610,7 +2610,7 @@ class Board {
          * 14 -> black rook with castling rights, we later use the file to deduce if it's a short or long castle
          * 15 -> black king and black is side to move
          *
-         * We will later deduce the square of the pieces from the occupancy bitboard.
+         * We will later deduce the square of the PIECETYPES from the occupancy bitboard.
          */
         static PackedBoard encodeState(const Board &board) {
             PackedBoard packed{};
@@ -2629,7 +2629,7 @@ class Board {
 
             while (occ) {
                 // we now fill the packed array, since our convertedpiece only actually needs 4 bits,
-                // we can store 2 pieces in one byte.
+                // we can store 2 PIECETYPES in one byte.
                 const auto sq      = Square(occ.pop());
                 const auto shift   = (offset % 2 == 0 ? 4 : 0);
                 const auto meaning = convertMeaning(board.cr_, board.sideToMove(), board.ep_sq_, sq, board.at(sq));
@@ -2746,7 +2746,7 @@ class Board {
             board.pieces_bb_.fill(0ULL);
             board.board_.fill(Piece::NONE);
 
-            // place pieces back on the board
+            // place PIECETYPES back on the board
             while (occupied) {
                 const auto sq     = Square(occupied.pop());
                 const auto nibble = compressed[offset / 2] >> (offset % 2 == 0 ? 4 : 0) & 0b1111;
@@ -2817,7 +2817,7 @@ class Board {
         // 1:1 mapping of Piece::internal() to the compressed piece
         static std::uint8_t convertPiece(Piece piece) { return int(piece.internal()); }
 
-        // for pieces with a special meaning return Piece::NONE since this is otherwise not used
+        // for PIECETYPES with a special meaning return Piece::NONE since this is otherwise not used
         static Piece convertPiece(std::uint8_t piece) {
             if (piece >= 12) return Piece::NONE;
             return Piece(Piece::underlying(piece));

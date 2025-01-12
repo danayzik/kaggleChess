@@ -1,6 +1,6 @@
 
 #include <algorithm>
-#include <map>
+
 #include "evaluation.h"
 #include "search.h"
 
@@ -31,8 +31,7 @@ void sortMovelist(Board& board, Movelist& moves) {
 
 
 
-
-std::pair<int , chess::Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing) {
+std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing) {
     GameResultReason game_result_reason;
     GameResult game_result;
     std::pair<GameResultReason, GameResult> gameOverCheck;
@@ -47,37 +46,37 @@ std::pair<int , chess::Move> minimax(Board& board, int depth, int alpha, int bet
     movegen::legalmoves(moves, board);
     sortMovelist(board, moves);
     if (is_maximizing) {
-        int max_eval = NEGATIVEINFINITY;
+        int max_eval = NEGINF-1;
         for (auto move : moves) {
             board.makeMove(move);
             auto [eval, _] = minimax(board, depth - 1, alpha, beta, false);
             board.unmakeMove(move);
-            if (eval >= max_eval) {
-                max_eval = eval;
+            if (eval > max_eval) {
                 best_move = move;
             }
+            max_eval = std::max(eval, max_eval);
+            alpha = std::max(alpha, eval);
             if (eval >= beta) {
                 break;
             }
-            alpha = std::max(alpha, eval);
         }
         return {max_eval, best_move};
 
     }
     else {
-        int min_eval = INFINITY;
+        int min_eval = INF+1;
         for (auto move : moves) {
             board.makeMove(move);
             auto [eval, _] = minimax(board, depth - 1, alpha, beta, true);
             board.unmakeMove(move);
-            if (eval <= min_eval) {
-                min_eval = eval;
+            if (eval < min_eval) {
                 best_move = move;
             }
+            min_eval = std::min(min_eval, eval);
+            beta = std::min(beta, eval);
             if (eval <= alpha) {
                 break;
             }
-            beta = std::min(beta, eval);
         }
         return {min_eval, best_move};
     }

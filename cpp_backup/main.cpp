@@ -18,9 +18,9 @@ void run(){
             Move enemyMove = uci::uciToMove(myBoard ,move_uci);
             myBoard.makeMove(enemyMove);
         }
-        auto [eval, move] = minimax(myBoard, 3, NEGATIVEINFINITY, INFINITY, maximizeSearch);
-        myBoard.makeMove(move);
+        auto [eval, move] = minimax(myBoard, 4, NEGINF, INF, maximizeSearch);
         std::string moveUCI = uci::moveToUci(move);
+        myBoard.makeMove(move);
         std::cout << moveUCI << std::endl;
         std::cout << std::flush;
     }
@@ -52,7 +52,7 @@ void testRun(){
             myBoard.makeMove(enemyMove);
         }
 
-        auto [eval, move] = minimax(myBoard, 3, NEGATIVEINFINITY, INFINITY, maximizeSearch);
+        auto [eval, move] = minimax(myBoard, 4, NEGINF, INF, maximizeSearch);
         myBoard.makeMove(move);
         std::string moveUCI = uci::moveToUci(move);
         std::cout << moveUCI << std::endl;
@@ -61,7 +61,11 @@ void testRun(){
     }
 }
 int main() {
-
+//    myBoard = Board();
+//    Bitboard bits = myBoard.PIECETYPES(PieceType::KNIGHT);
+//    int index = bits.pop();
+//    Bitboard attacks = attacks::knight(index);
+//    std::cout << attacks << std::endl;
     initTables();
     setColor();
     setupBoard();

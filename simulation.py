@@ -31,14 +31,17 @@ def human_vs_bot():
     global botv1_wins, stockfish_wins, draws, games
     p1 = TestBotApi()
     p2 = HumanPlayer()
-
     g = Game(p1, p2, True)
-    res = g.run()
+    try:
+        res = g.run()
+    except Exception:
+        print("Crashed")
+        print(g.board.fen())
 
 
 def run_games_in_threads():
-    num_threads = 10
-    iterations_per_thread = 10
+    num_threads = 3
+    iterations_per_thread = 30
 
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         futures = [executor.submit(bot_vs_stockfish) for _ in range(num_threads * iterations_per_thread)]
@@ -54,9 +57,14 @@ def bot_vs_stockfish():
     global botv1_wins, stockfish_wins, draws, games
     p1 = TestBotApi()
     p2 = StockfishPlayer()
-    p2.set_engine_strength(1320, 0.1)
+    p2.set_engine_strength(1320, 0.10)
     g = Game(p1, p2, False)
-    res = g.run()
+    try:
+        res = g.run()
+    except Exception:
+        print("Crashed")
+        print(g.board.fen())
+        return
     with counter_lock:
         if res == 1:
             botv1_wins += 1
@@ -68,7 +76,7 @@ def bot_vs_stockfish():
         games += 1
 
 if __name__ == "__main__":
-    human_vs_bot()
+    run_games_in_threads()
 
 
 
