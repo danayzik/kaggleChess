@@ -4,9 +4,8 @@ Move ordering:
 MVV-LVA ordering
 pins or skewers ordering
 
+
 Eval:
--Mobility bonus
--Rook on open file
 -Hanging piece
 -Pin
 -Skewer
@@ -14,6 +13,7 @@ Eval:
 - Bishop on king/queen diagonal
 - pawn structure
 -outpost
+-Safe mobility?
 
 
 search:

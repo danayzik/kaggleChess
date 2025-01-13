@@ -36,6 +36,21 @@ std::vector<PieceType> PIECETYPES = {
         PieceType::KING
 };
 
+int mobilityBonus = 5;
+int halfOpenFileBonus = 25;
+int fullyOpenFileBonus = 60;
+int outPostBonus = 80;
+
+Bitboard tripleFileMask(Bitboard fileBits, File f){
+    Bitboard leftFile = f >> std::min(1, (int)f);
+    Bitboard rightFile = f >> std::min(1, (int)f-7);
+    return  (leftFile | rightFile | fileBits);
+}
+
+Bitboard sideFilesMask(Bitboard fileBits, File f){
+
+}
+
 void initEval(){
     scores = {0, 0};
     mg = {0, 0};
@@ -47,6 +62,46 @@ void incPestoValues(int colorIndex, int pc, int sqrIndex){
     mg[colorIndex] += mg_table[pc][sqrIndex];
     eg[colorIndex] += eg_table[pc][sqrIndex];
     gamePhase += gamephaseInc[pc];
+}
+
+void addMobilityBonus(const Board& board, Bitboard controlledSquares, Color color, bool isKing){
+    int colorIndex = static_cast<int>(color);
+    int kingMult = 1 - 2 * isKing;
+    Bitboard occ = board.occ();
+    Bitboard canReachBits = controlledSquares & (~occ);
+    int squareCount = canReachBits.count();
+    scores[colorIndex] += squareCount*mobilityBonus*kingMult;
+}
+
+void addOutpostBonus(const Board& board, Square knightSquare, Color color){
+    int colorIndex = static_cast<int>(color);
+    Bitboard friendlyPawns = board.pieces(PieceType::PAWN, color);
+    Bitboard enemyPawns = board.pieces(PieceType::PAWN, ~color);
+    File knightFile = knightSquare.file();
+    Bitboard knightFileBits = Bitboard(knightFile);
+    int halfOpenFile = (knightFileBits & friendlyPawns) == 0;
+    int knightRank = knightSquare.rank();
+    bool isInEnemyTerritory = (colorIndex ^ (knightRank >= 4));
+    Bitboard friendlyPawnLeftAttacks = (color == Color::WHITE)
+                           ? attacks::pawnLeftAttacks<Color::WHITE>(friendlyPawns)
+                           : attacks::pawnLeftAttacks<Color::BLACK>(friendlyPawns);
+    Bitboard friendlyPawnRightAttacks = (color == Color::WHITE)
+                               ? attacks::pawnRightAttacks<Color::WHITE>(friendlyPawns)
+                               : attacks::pawnRightAttacks<Color::BLACK>(friendlyPawns);
+    Bitboard pawnProtection = friendlyPawnLeftAttacks | friendlyPawnRightAttacks;
+    Bitboard knightBoard = 1ULL << knightSquare.index();
+    int isDefendedByPawn = (knightBoard & pawnProtection) != 0;
+    Bitboard passedFileMask = tripleFileMask(knightFileBits, knightFile);
+}
+
+void addRookOnOpenFile(const Board& board, Square rookSquare, Color color){
+    int colorIndex = static_cast<int>(color);
+    Bitboard friendlyPawns = board.pieces(PieceType::PAWN, color);
+    Bitboard enemyPawns = board.pieces(PieceType::PAWN, ~color);
+    Bitboard rookFile = Bitboard(rookSquare.file());
+    int halfOpen = (rookFile & friendlyPawns) == 0;
+    int fullyOpen = halfOpen & ((rookFile & enemyPawns) == 0);
+    scores[colorIndex] += halfOpen * (halfOpenFileBonus + fullyOpen * (fullyOpenFileBonus - halfOpenFileBonus));
 }
 
 void addAttackDefendValues(const Board& board, Bitboard controlledSquares, Color color){
@@ -61,6 +116,7 @@ void addAttackDefendValues(const Board& board, Bitboard controlledSquares, Color
     }
 }
 
+// Bishop, Rook, Queen
 void evaluateBlockedPieces(const Board& board, Color color){
     std::vector<PieceType> blockedPieces = {PieceType::BISHOP, PieceType::ROOK, PieceType::QUEEN};
     std::map<PieceType, std::function<Bitboard(Square, Bitboard)>> pieceTypeToAttackFunction = {
@@ -78,6 +134,10 @@ void evaluateBlockedPieces(const Board& board, Color color){
             incPestoValues(colorIndex, pc, sqrIndex);
             Bitboard controlledSquares = pieceTypeToAttackFunction[type](sqrIndex, occ);
             addAttackDefendValues(board, controlledSquares, color);
+            addMobilityBonus(board, controlledSquares, color, false);
+            if (type == PieceType::ROOK){
+                addRookOnOpenFile(board, Square(sqrIndex), color);
+            }
         }
     }
 
@@ -113,6 +173,7 @@ void evaluateKing(const Board& board, Color color){
     Bitboard controlledSquares = attacks::king(sqrIndex);
     incPestoValues(colorIndex, pc, sqrIndex);
     addAttackDefendValues(board, controlledSquares, color);
+    addMobilityBonus(board, controlledSquares, color, true);
 }
 
 void evaluateKnights(const Board& board, Color color){
@@ -124,6 +185,7 @@ void evaluateKnights(const Board& board, Color color){
         Bitboard controlledSquares = attacks::knight(sqrIndex);
         incPestoValues(colorIndex, pc, sqrIndex);
         addAttackDefendValues(board, controlledSquares, color);
+        addMobilityBonus(board, controlledSquares, color, false);
     }
 }
 

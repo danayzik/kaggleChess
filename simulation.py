@@ -40,8 +40,8 @@ def human_vs_bot():
 
 
 def run_games_in_threads():
-    num_threads = 3
-    iterations_per_thread = 30
+    num_threads = 10
+    iterations_per_thread = 10
 
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         futures = [executor.submit(bot_vs_stockfish) for _ in range(num_threads * iterations_per_thread)]

@@ -7,7 +7,7 @@ Board myBoard;
 bool maximizeSearch;
 
 
-void run(){
+void run(int depth){
     while (true){
         std::string move_uci;
         std::getline(std::cin, move_uci);
@@ -18,7 +18,7 @@ void run(){
             Move enemyMove = uci::uciToMove(myBoard ,move_uci);
             myBoard.makeMove(enemyMove);
         }
-        auto [eval, move] = minimax(myBoard, 4, NEGINF, INF, maximizeSearch);
+        auto [eval, move] = minimax(myBoard, depth, NEGINF, INF, maximizeSearch);
         std::string moveUCI = uci::moveToUci(move);
         myBoard.makeMove(move);
         std::cout << moveUCI << std::endl;
@@ -61,15 +61,12 @@ void testRun(){
     }
 }
 int main() {
-//    myBoard = Board();
-//    Bitboard bits = myBoard.PIECETYPES(PieceType::KNIGHT);
-//    int index = bits.pop();
-//    Bitboard attacks = attacks::knight(index);
-//    std::cout << attacks << std::endl;
-    initTables();
-    setColor();
-    setupBoard();
-    run();
-    return 0;
+    int r = (int)Square(63).file();
+    std::cout << r << std::endl;
+//    initTables();
+//    setColor();
+//    setupBoard();
+//    run(4);
+//    return 0;
 }
 

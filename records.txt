@@ -25,7 +25,13 @@ BotV1 wins: 44
 Stockfish wins: 33
 Draws: 23
 
+//End of buggy versions
 
-BotV1 wins: 49
-Stockfish wins: 39
-Draws: 2
+BotV1 wins: 606
+Stockfish wins: 342
+Draws: 52
+
+Depth 6 // takes too long
+BotV1 wins: 89
+Stockfish wins: 10
+Draws: 1
