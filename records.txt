@@ -31,6 +31,12 @@ BotV1 wins: 606
 Stockfish wins: 342
 Draws: 52
 
+
+// Enhanced eval function
+BotV1 wins: 59
+Stockfish wins: 36
+Draws: 5
+
 Depth 6 // takes too long
 BotV1 wins: 89
 Stockfish wins: 10

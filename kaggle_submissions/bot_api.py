@@ -24,7 +24,6 @@ class BotApi:
 
 
     def init_bot(self):
-
         base_path = '/kaggle_simulations/agent/'
         bot_path = os.path.join(base_path, 'chessBot')
         subprocess.run(['chmod', '+x', bot_path])

@@ -10,12 +10,12 @@ std::array<int, 2> eg;
 int gamePhase;
 
 std::map<PieceType, int> ATTACK_VALUES = {
-        {PieceType::PAWN, 5},
-        {PieceType::KNIGHT, 8},
-        {PieceType::BISHOP, 8},
-        {PieceType::ROOK, 10},
-        {PieceType::QUEEN, 15},
-        {PieceType::KING, 15}
+        {PieceType::PAWN, 3},
+        {PieceType::KNIGHT, 6},
+        {PieceType::BISHOP, 6},
+        {PieceType::ROOK, 6},
+        {PieceType::QUEEN, 8},
+        {PieceType::KING, 8}
 };
 
 std::map<PieceType, int> DEFEND_VALUES = {
@@ -36,10 +36,11 @@ std::vector<PieceType> PIECETYPES = {
         PieceType::KING
 };
 
-int mobilityBonus = 5;
+int mobilityBonus = 4;
 int halfOpenFileBonus = 25;
 int fullyOpenFileBonus = 60;
 int outPostBonus = 80;
+int passedPawnBonus = 40;
 
 Bitboard tripleFileMask(Bitboard fileBits, File f){
     Bitboard leftFile = f >> std::min(1, (int)f);
@@ -48,7 +49,8 @@ Bitboard tripleFileMask(Bitboard fileBits, File f){
 }
 
 Bitboard sideFilesMask(Bitboard fileBits, File f){
-
+    Bitboard tripleMask = tripleFileMask(fileBits, f);
+    return tripleMask & (~fileBits);
 }
 
 void initEval(){
@@ -64,6 +66,28 @@ void incPestoValues(int colorIndex, int pc, int sqrIndex){
     gamePhase += gamephaseInc[pc];
 }
 
+Bitboard getRanksInfront(int pieceRank, bool isWhite){
+    uint64_t allOnes = ~0UL;
+    Bitboard full = Bitboard(allOnes);
+    Bitboard ranksInfrontMask = isWhite? full << 8*(pieceRank + 1): full >> 8*(8-pieceRank);
+    return ranksInfrontMask;
+}
+
+void addPassedPawnBonus(const Board& board, Square pawnSquare, Color color){
+    int colorIndex = static_cast<int>(color);
+    bool isWhite = color == Color::WHITE;
+    Bitboard enemyPawns = board.pieces(PieceType::PAWN, ~color);
+    File pawnFile = pawnSquare.file();
+    Bitboard pawnFileBits = Bitboard(pawnFile);
+    Bitboard tripleFiles = tripleFileMask(pawnFileBits, pawnFile);
+    int pawnRank = pawnSquare.rank();
+    Bitboard ranksInfrontMask = getRanksInfront(pawnRank, isWhite);
+    Bitboard denyingPawns = tripleFiles & enemyPawns & ranksInfrontMask;
+    bool passed = denyingPawns == 0;
+    scores[colorIndex] += passed*passedPawnBonus;
+
+}
+
 void addMobilityBonus(const Board& board, Bitboard controlledSquares, Color color, bool isKing){
     int colorIndex = static_cast<int>(color);
     int kingMult = 1 - 2 * isKing;
@@ -75,23 +99,36 @@ void addMobilityBonus(const Board& board, Bitboard controlledSquares, Color colo
 
 void addOutpostBonus(const Board& board, Square knightSquare, Color color){
     int colorIndex = static_cast<int>(color);
+    bool isWhite = color == Color::WHITE;
+    // Open File
     Bitboard friendlyPawns = board.pieces(PieceType::PAWN, color);
-    Bitboard enemyPawns = board.pieces(PieceType::PAWN, ~color);
     File knightFile = knightSquare.file();
     Bitboard knightFileBits = Bitboard(knightFile);
     int halfOpenFile = (knightFileBits & friendlyPawns) == 0;
+
+    // On enemy side
     int knightRank = knightSquare.rank();
     bool isInEnemyTerritory = (colorIndex ^ (knightRank >= 4));
-    Bitboard friendlyPawnLeftAttacks = (color == Color::WHITE)
-                           ? attacks::pawnLeftAttacks<Color::WHITE>(friendlyPawns)
-                           : attacks::pawnLeftAttacks<Color::BLACK>(friendlyPawns);
+
+    // Protected
+    Bitboard friendlyPawnLeftAttacks = isWhite
+                                       ? attacks::pawnLeftAttacks<Color::WHITE>(friendlyPawns)
+                                       : attacks::pawnLeftAttacks<Color::BLACK>(friendlyPawns);
     Bitboard friendlyPawnRightAttacks = (color == Color::WHITE)
-                               ? attacks::pawnRightAttacks<Color::WHITE>(friendlyPawns)
-                               : attacks::pawnRightAttacks<Color::BLACK>(friendlyPawns);
+                                        ? attacks::pawnRightAttacks<Color::WHITE>(friendlyPawns)
+                                        : attacks::pawnRightAttacks<Color::BLACK>(friendlyPawns);
     Bitboard pawnProtection = friendlyPawnLeftAttacks | friendlyPawnRightAttacks;
     Bitboard knightBoard = 1ULL << knightSquare.index();
     int isDefendedByPawn = (knightBoard & pawnProtection) != 0;
-    Bitboard passedFileMask = tripleFileMask(knightFileBits, knightFile);
+
+    // Safe From Pawns
+    Bitboard enemyPawns = board.pieces(PieceType::PAWN, ~color);
+    Bitboard ranksInfrontMask = getRanksInfront(knightRank, isWhite);
+    Bitboard sidesMask = sideFilesMask(knightFileBits, knightFile);
+    Bitboard denyingPawns = sidesMask & enemyPawns & ranksInfrontMask;
+    bool safeFromPawns = denyingPawns == 0;
+
+    scores[colorIndex] += (safeFromPawns && isDefendedByPawn && isInEnemyTerritory && halfOpenFile)*outPostBonus;
 }
 
 void addRookOnOpenFile(const Board& board, Square rookSquare, Color color){
@@ -161,6 +198,8 @@ void evaluatePawns(const Board& board, Color color){
     addAttackDefendValues(board, rightAttacks, color);
     while(pawnBits != 0){
         int sqrIndex = pawnBits.pop();
+        Square pawnSquare = Square(sqrIndex);
+        addPassedPawnBonus(board, pawnSquare, color);
         incPestoValues(colorIndex, pc, sqrIndex);
     }
 }
@@ -182,10 +221,12 @@ void evaluateKnights(const Board& board, Color color){
     int pc = static_cast<int>(PieceType::KNIGHT) * 2 + colorIndex;
     while(knightBits != 0){
         int sqrIndex = knightBits.pop();
-        Bitboard controlledSquares = attacks::knight(sqrIndex);
+        Square knightSquare = Square(sqrIndex);
+        Bitboard controlledSquares = attacks::knight(knightSquare);
         incPestoValues(colorIndex, pc, sqrIndex);
         addAttackDefendValues(board, controlledSquares, color);
         addMobilityBonus(board, controlledSquares, color, false);
+        addOutpostBonus(board, knightSquare, color);
     }
 }
 

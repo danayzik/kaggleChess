@@ -3,8 +3,23 @@ import chess
 
 from players.player import Player
 import subprocess
-import os
+import time
 
+move_count = 0
+total_time = 0.0
+
+def time_it(func):
+
+    def wrapper(*args, **kwargs):
+        global move_count
+        global total_time
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        move_count += 1
+        total_time += (end_time - start_time)
+        return result
+    return wrapper
 
 class TestBotApi(Player):
     def __init__(self):
@@ -17,7 +32,7 @@ class TestBotApi(Player):
         self.send_str(symbol)
 
 
-
+    @time_it
     def get_move(self, enemy_move: chess.Move) -> chess.Move:
         try:
             if enemy_move is None:
@@ -35,6 +50,8 @@ class TestBotApi(Player):
 
 
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
+        print(f"Total time: {total_time:.6f} seconds")
+        print(f"Average time: {total_time/move_count:.6f} seconds")
         self.send_str("end")
         self.bot.kill()
 
@@ -56,8 +73,6 @@ class TestBotApi(Player):
 
     def read_move(self):
         output = self.bot.stdout.readline()
-
-
         return output.strip()
 
     def setup_board(self, fen: str) -> None:
