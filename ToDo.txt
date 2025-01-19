@@ -1,8 +1,10 @@
 Refactor gameresult check in evaluate
 
 Move ordering:
-MVV-LVA ordering
-pins or skewers ordering
+PV
+Hash move
+History
+Losing captures after everything
 
 
 Eval:

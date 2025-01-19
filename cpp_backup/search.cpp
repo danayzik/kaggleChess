@@ -2,9 +2,10 @@
 #include "evaluation.h"
 #include "search.h"
 #include "transposition_table.cpp"
+#include <iostream>
+#include <chrono>
 
-
-TranspositionTable tt(5000, 3000);
+TranspositionTable tt(10000, 7000);
 
 uint64_t getTTKey(const Board& board, int depth){
     uint64_t zobrist = board.hash();
@@ -71,10 +72,13 @@ std::pair<int , Move> iterativeSearch(Board& board, bool is_maximizing, int maxD
     std::pair<int, Move> miniMaxRes;
 
     for (int depth = 1; depth <= maxDepth; depth++) {
-        tt.clean();
+        auto start = std::chrono::high_resolution_clock::now();
         miniMaxRes = minimax(board, depth, NEGINF, INF, is_maximizing);
         eval = miniMaxRes.first;
         bestMove = miniMaxRes.second;
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "Elapsed time for depth: " << depth<<" " << duration.count() << " microseconds" << std::endl;
     }
 
     return {eval, bestMove};
@@ -85,18 +89,18 @@ std::pair<int , Move> iterativeSearch(Board& board, bool is_maximizing, int maxD
 
 std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing) {
 
-
+    uint64_t key = getTTKey(board, depth);
+    if (tt.hasKey(key)){
+        return tt.fetch(key);
+    }
     Movelist moves;
     movegen::legalmoves(moves, board);
     auto [resultReason, gameResult] = isGameOver(board, moves);
     if (depth == 0 || (resultReason != GameResultReason::NONE)) {
         return {evaluate_board(board, gameResult, resultReason), Move()};
     }
-    uint64_t key = getTTKey(board, depth);
-    if (tt.hasKey(key)){
-        return tt.fetch(key);
-    }
-    chess::Move best_move = Move();
+
+    Move best_move = Move();
     sortMovelist(board, moves);
     if (is_maximizing) {
         int max_eval = NEGINF-1;

@@ -33,6 +33,7 @@ public:
     void store(const uintptr_t key, const TTEntry& entry) {
         if(!hasKey(key)) size++;
         table[key] = entry;
+        this->clean();
     }
 
     // Assumes hasKey has been called and is true
@@ -56,7 +57,6 @@ public:
 private:
 
     void evictEntries() {
-
         std::vector<std::pair<uint64_t , TTEntry>> vec(table.begin(), table.end());
         auto comparator = [](const std::pair<uint64_t, TTEntry>& a, const std::pair<uint64_t, TTEntry>& b) {
             const TTEntry& entryA = a.second;
@@ -67,7 +67,7 @@ private:
             if (diffFullMoves > 5) {
                 return entryA.fullMoves < entryB.fullMoves;
             } else {
-                return entryA.depth > entryB.depth;
+                return entryA.depth < entryB.depth;
             }
         };
 
