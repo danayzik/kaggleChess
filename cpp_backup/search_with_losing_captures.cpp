@@ -70,7 +70,23 @@ void sortMovelist(Board& board, Movelist& moves) {
         int victim = static_cast<int>(board.at(to).type());
         return victim * 10 - attacker;
     };
-    auto comparator = [&board, &mvvLvaScore](const Move &a, const Move &b) {
+    auto isLosingCapture = [&board](const Move& move){
+        Square from = move.from();
+        Square to = move.to();
+        std::map<PieceType, int> valueMap = {
+                {PieceType::PAWN , 1},
+                {PieceType::KNIGHT , 2},
+                {PieceType::BISHOP , 2},
+                {PieceType::ROOK , 3},
+                {PieceType::QUEEN , 4},
+                {PieceType::KING , 0}
+        };
+        PieceType attacker = board.at(from).type();
+        PieceType victim = board.at(to).type();
+        return (valueMap[victim] - valueMap[attacker]) < 0;
+    };
+
+    auto comparator = [&board, &mvvLvaScore, &isLosingCapture](const Move &a, const Move &b) {
         bool leftIsPV = a == pv_move;
         bool rightIsPV = b == pv_move;
         if (leftIsPV && !rightIsPV) return true;
@@ -86,12 +102,22 @@ void sortMovelist(Board& board, Movelist& moves) {
         bool leftIsCapture = board.isCapture(a);
         bool rightIsCapture = board.isCapture(b);
         if(leftIsCapture && rightIsCapture){
+            bool leftIsLosing = isLosingCapture(a);
+            bool rightIsLosing = isLosingCapture(b);
+            if (leftIsLosing && !rightIsLosing)
+                return false;
+            if(!leftIsLosing && rightIsLosing)
+                return true;
             return mvvLvaScore(a) > mvvLvaScore(b);
         }
         if(leftIsCapture && !rightIsCapture){
+            if(isLosingCapture(a))
+                return false;
             return true;
         }
         if(!leftIsCapture && rightIsCapture){
+            if(isLosingCapture(b))
+                return true;
             return false;
         }
         return fetchHistoryScore(board, a) > fetchHistoryScore(board, b);
@@ -113,8 +139,11 @@ std::pair<int , Move> iterativeSearch(Board& board, bool is_maximizing, int maxD
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
         std::cout << "Elapsed time for depth: " << depth<<" " << duration.count() << " microseconds" << std::endl;
     }
+
     return {eval, bestMove};
 }
+
+
 
 
 std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing) {

@@ -1,11 +1,10 @@
 Refactor gameresult check in evaluate
 
 Move ordering:
-PV
-Hash move
-History
-Losing captures after everything
-
+Late move reductions
+Test losing captures
+Aspiration windows
+Improve TT
 
 Eval:
 -Hanging piece
@@ -18,19 +17,15 @@ Eval:
 
 
 search:
-- Order moves in minimax
+- Add time limit
 -extensions
--Iterative
 -Quiescence
 
 
 Small opt:
--Use chess lib flip in cpp instead of pesto
-- Potentially avoid gameover?  gen movelist only once(is generated in gameOver)
+
 - since i'm saving board state, evaluate based on what changed only. (specifically mg and eg phase)
--Order captures by smallest value first
-- ischeckmove called multiple times
--transpoisition during search
+
 - Refactor cpp code, make github
 
 Ideas:
@@ -56,4 +51,4 @@ Training:
 Other:
 - Compare subprocess to extension module
 - kill bot when game ends on kaggle.
-- Check memory restrictions
+- Memory profile and cpu profile the bot
