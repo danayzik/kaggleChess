@@ -45,7 +45,7 @@ int main() {
     initTables();
     setColor();
     setupBoard();
-    run(5);
+    run(6);
     return 0;
 }
 

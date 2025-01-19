@@ -94,7 +94,6 @@ std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool
     }
     uint64_t key = getTTKey(board, depth);
     if (tt.hasKey(key)){
-//        std::cout<< "Used cache"<< std::endl;
         return tt.fetch(key);
     }
     chess::Move best_move = Move();

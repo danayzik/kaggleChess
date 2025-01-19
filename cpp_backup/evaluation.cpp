@@ -67,8 +67,9 @@ void incPestoValues(int colorIndex, int pc, int sqrIndex){
 }
 
 Bitboard getRanksInfront(int pieceRank, bool isWhite){
-    uint64_t allOnes = ~0UL;
+    uint64_t allOnes = ~0ULL;
     Bitboard full = Bitboard(allOnes);
+
     Bitboard ranksInfrontMask = isWhite? full << 8*(pieceRank + 1): full >> 8*(8-pieceRank);
     return ranksInfrontMask;
 }
@@ -85,6 +86,7 @@ void addPassedPawnBonus(const Board& board, Square pawnSquare, Color color){
     Bitboard denyingPawns = tripleFiles & enemyPawns & ranksInfrontMask;
     bool passed = denyingPawns == 0;
     scores[colorIndex] += passed*passedPawnBonus;
+
 
 }
 
@@ -196,6 +198,7 @@ void evaluatePawns(const Board& board, Color color){
     }
     addAttackDefendValues(board, leftAttacks, color);
     addAttackDefendValues(board, rightAttacks, color);
+
     while(pawnBits != 0){
         int sqrIndex = pawnBits.pop();
         Square pawnSquare = Square(sqrIndex);
@@ -294,15 +297,17 @@ int endgameMateEval(const Board& board, int egPhase, int currEval){
 }
 
 int evaluatePieces(const Board& board) {
-    chess::Color white = Color::WHITE;
-    chess::Color black = ~white;
+    Color white = Color::WHITE;
+    Color black = ~white;
     for(Color color : {white, black}){
         evaluatePawns(board, color);
         evaluateKnights(board, color);
         evaluateBlockedPieces(board, color);
         evaluateKing(board, color);
+
     }
     int eval = scores[0] - scores[1];
+
     int mgScore = mg[0] - mg[1];
     int egScore = eg[0] - eg[1];
     int mgPhase = gamePhase > 24 ? 24 : gamePhase;
