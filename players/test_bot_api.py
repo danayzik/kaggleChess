@@ -42,8 +42,9 @@ class TestBotApi(Player):
                 message = "start"
             else:
                 message = chess.Move.uci(enemy_move)
-
             self.send_str(message)
+            # self.read_move()
+            # print(f"Depth: {self.read_move()}")
             move_uci = self.read_move()
             move = chess.Move.from_uci(move_uci)
             return move
