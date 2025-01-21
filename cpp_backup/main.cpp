@@ -1,13 +1,14 @@
 #include "chess.hpp"
 #include "game_tables.h"
-#include "evaluation.h"
 #include "search.h"
 
 Board myBoard;
 bool maximizeSearch;
+int getTimeLimit(){
+    return myBoard.fullMoveNumber() >= 55? 100: 250;
+}
 
-
-void run(int depth){
+void run(){
     while (true){
         std::string move_uci;
         std::getline(std::cin, move_uci);
@@ -18,11 +19,10 @@ void run(int depth){
             Move enemyMove = uci::uciToMove(myBoard ,move_uci);
             myBoard.makeMove(enemyMove);
         }
-        auto [eval, move] = iterativeSearch(myBoard, maximizeSearch, depth);
+        auto [eval, move] = iterativeSearch(myBoard, maximizeSearch, getTimeLimit());
         std::string moveUCI = uci::moveToUci(move);
         myBoard.makeMove(move);
-        std::cout << moveUCI << std::endl;
-        std::cout << std::flush;
+        std::cout << moveUCI << std::endl << std::flush;
     }
 }
 
@@ -45,7 +45,7 @@ int main() {
     initTables();
     setColor();
     setupBoard();
-    run(8);
+    run();
     return 0;
 }
 

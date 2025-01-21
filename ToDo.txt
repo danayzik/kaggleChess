@@ -1,10 +1,12 @@
 Refactor gameresult check in evaluate
 
+Add reliable result if main search completed a subtree.
+
 Move ordering:
-Late move reductions
-Test losing captures
 Aspiration windows
 Improve TT
+
+compare instead of sort
 
 Eval:
 -Hanging piece
@@ -14,6 +16,7 @@ Eval:
 - Bishop on king/queen diagonal
 - pawn structure
 -Safe mobility?
+- Use isAttacked for hanging
 
 
 search:

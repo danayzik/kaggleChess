@@ -5,7 +5,7 @@ from players.player import Player
 import subprocess
 import time
 
-move_count = 0
+move_count = 1
 total_time = 0.0
 
 def time_it(func):
@@ -27,6 +27,9 @@ class TestBotApi(Player):
         self.bot = self.init_bot()
 
     def set_color(self, color: chess.Color):
+        global move_count, total_time
+        move_count = 1
+        total_time = 0.0
         super().set_color(color)
         symbol = 'w' if color else 'b'
         self.send_str(symbol)

@@ -19,10 +19,10 @@ std::map<PieceType, int> ATTACK_VALUES = {
 };
 
 std::map<PieceType, int> DEFEND_VALUES = {
-        {PieceType::PAWN, 20},
-        {PieceType::KNIGHT, 10},
-        {PieceType::BISHOP, 10},
-        {PieceType::ROOK, 5},
+        {PieceType::PAWN, 10},
+        {PieceType::KNIGHT, 5},
+        {PieceType::BISHOP, 5},
+        {PieceType::ROOK, 3},
         {PieceType::QUEEN, 0},
         {PieceType::KING, 0}
 };
@@ -268,7 +268,7 @@ int endgameMateEval(const Board& board, int egPhase, int currEval){
     int blackKingRank = blackKingSquare.rank();
     int whiteKingFile = whiteKingSquare.file();
     int blackKingFile = blackKingSquare.file();
-    double egWeight = egPhase;
+    double egWeight = egPhase/2;
     int eval = 0;
     int distanceBetweenKings = abs(whiteKingFile-blackKingFile)+abs(whiteKingRank-blackKingRank);
 

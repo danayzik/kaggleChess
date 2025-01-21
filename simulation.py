@@ -61,7 +61,8 @@ def bot_vs_stockfish():
     g = Game(p1, p2, False)
     try:
         res = g.run()
-    except Exception:
+    except Exception as e:
+        print(e)
         print("Crashed")
         print(g.board.fen())
         return
@@ -76,7 +77,8 @@ def bot_vs_stockfish():
         games += 1
 
 if __name__ == "__main__":
-    run_games_in_threads()
+    human_vs_bot()
+    # run_games_in_threads()
 
 
 

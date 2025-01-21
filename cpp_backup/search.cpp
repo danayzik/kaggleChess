@@ -9,6 +9,9 @@ TranspositionTable tt(10000, 7000);
 Move pv_move = Move();
 int currDepth = -1;
 std::vector<std::vector<std::vector<int>>> historyTable(2, std::vector<std::vector<int>>(6, std::vector<int>(64, 0)));
+std::chrono::time_point<std::chrono::high_resolution_clock> searchStartTime;
+int timeLimit = 0;
+bool searchStopped = false;
 
 uint64_t getTTKey(Board& board, int depth){
     uint64_t zobrist = board.hash();
@@ -62,15 +65,23 @@ std::pair<GameResultReason, GameResult> isGameOver(Board& board, Movelist& legal
     return {GameResultReason::NONE, GameResult::NONE};
 }
 
-void sortMovelist(Board& board, Movelist& moves) {
-    auto mvvLvaScore = [&board](const Move& move) {
-        Square from = move.from();
-        Square to = move.to();
-        int attacker = static_cast<int>(board.at(from).type());
-        int victim = static_cast<int>(board.at(to).type());
-        return victim * 10 - attacker;
+int mvvLvaScore(const Board& board, const Move& move){
+    Square from = move.from();
+    Square to = move.to();
+    int attacker = static_cast<int>(board.at(from).type());
+    int victim = static_cast<int>(board.at(to).type());
+    return victim * 10 - attacker;
+}
+
+void sortCaptureList(Board& board, Movelist& moves){
+    auto comparator = [&board](const Move &a, const Move &b) {
+        return mvvLvaScore(board, a) > mvvLvaScore(board, b);
     };
-    auto comparator = [&board, &mvvLvaScore](const Move &a, const Move &b) {
+    std::sort(moves.begin(), moves.end(), comparator);
+}
+
+void sortMovelist(Board& board, Movelist& moves) {
+    auto comparator = [&board](const Move &a, const Move &b) {
         bool leftIsPV = a == pv_move;
         bool rightIsPV = b == pv_move;
         if (leftIsPV && !rightIsPV) return true;
@@ -86,7 +97,7 @@ void sortMovelist(Board& board, Movelist& moves) {
         bool leftIsCapture = board.isCapture(a);
         bool rightIsCapture = board.isCapture(b);
         if(leftIsCapture && rightIsCapture){
-            return mvvLvaScore(a) > mvvLvaScore(b);
+            return mvvLvaScore(board, a) > mvvLvaScore(board, b);
         }
         if(leftIsCapture && !rightIsCapture){
             return true;
@@ -99,50 +110,75 @@ void sortMovelist(Board& board, Movelist& moves) {
     std::sort(moves.begin(), moves.end(), comparator);
 }
 
-std::pair<int , Move> iterativeSearch(Board& board, bool is_maximizing, int maxDepth){
+std::pair<int , Move> iterativeSearch(Board& board, bool is_maximizing, int msTimeLimit){
+    searchStopped = false;
+    searchStartTime = std::chrono::high_resolution_clock::now();
+    timeLimit = msTimeLimit;
     int eval = 0;
     Move bestMove = Move();
     std::pair<int, Move> miniMaxRes;
+    int maxDepth = 30;
+    int alpha = NEGINF;
+    int beta = INF;
     for (int depth = 1; depth <= maxDepth; depth++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        miniMaxRes = minimax(board, depth, NEGINF, INF, is_maximizing);
+//        auto start = std::chrono::high_resolution_clock::now();
+        miniMaxRes = minimax(board, depth, alpha, beta, is_maximizing, false);
         auto end = std::chrono::high_resolution_clock::now();
-        eval = miniMaxRes.first;
-        bestMove = miniMaxRes.second;
-        pv_move = bestMove;
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Elapsed time for depth: " << depth<<" " << duration.count() << " microseconds" << std::endl;
+        if ((!searchStopped)) {
+            eval = miniMaxRes.first;
+            bestMove = miniMaxRes.second;
+            pv_move = bestMove;
+            alpha = eval - 200;
+            beta = eval + 200;
+
+        }
+//        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+//        std::cout << "Elapsed time for depth: " << depth<<" " << duration.count() << " microseconds" << std::endl;
+        auto elapsed = std::chrono::high_resolution_clock::now() - searchStartTime;
+        if (elapsed >= std::chrono::milliseconds(msTimeLimit))
+            break;
     }
     return {eval, bestMove};
 }
 
 
-std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing) {
+std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool is_maximizing, bool inSearch) {
+    auto elapsed = std::chrono::high_resolution_clock::now() - searchStartTime;
+    if (elapsed >= std::chrono::milliseconds(timeLimit)) {
+        searchStopped = true;
+        return {0, Move()};
+    }
     currDepth = depth;
+    int moveIndex = 0;
     Movelist moves;
     movegen::legalmoves(moves, board);
     auto [resultReason, gameResult] = isGameOver(board, moves);
-    if (depth == 0 || (resultReason != GameResultReason::NONE)) {
+    if(resultReason != GameResultReason::NONE)
         return {evaluate_board(board, gameResult, resultReason), Move()};
+    if (depth == 0) {
+        return quiesce(board, alpha, beta, is_maximizing);
     }
     uint64_t key = getTTKey(board, depth);
-    if (tt.hasKey(key)){
+    if (tt.hasKey(key)) {
         return tt.fetch(key);
     }
     Move best_move = Move();
     sortMovelist(board, moves);
     if (is_maximizing) {
-        int max_eval = NEGINF-1;
-        for (auto move : moves) {
+        int max_eval = NEGINF - 1;
+        for (auto move: moves) {
+            moveIndex++;
             board.makeMove(move);
-            auto [eval, _] = minimax(board, depth - 1, alpha, beta, false);
+            int checkMove = board.inCheck();
+            int lateMoveReduction = moveIndex >= 4 && depth > 3;
+            auto [eval, _] = minimax(board, depth - 1 + checkMove - lateMoveReduction, alpha, beta, false, true);
             board.unmakeMove(move);
             if (eval > max_eval) {
                 best_move = move;
             }
             max_eval = std::max(eval, max_eval);
             alpha = std::max(alpha, eval);
-            if (eval >= beta) {
+            if (eval >= beta && inSearch) {
                 if (!board.isCapture(move))
                     updateHistory(board, move, depth, is_maximizing);
                 break;
@@ -150,20 +186,25 @@ std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool
         }
         addTTEntry(board, max_eval, best_move, depth);
         return {max_eval, best_move};
-
-    }
-    else {
-        int min_eval = INF+1;
-        for (auto move : moves) {
+    } else {
+        int min_eval = INF + 1;
+        for (auto move: moves) {
+            moveIndex++;
             board.makeMove(move);
-            auto [eval, _] = minimax(board, depth - 1, alpha, beta, true);
+            int checkMove = board.inCheck();
+            int lateMoveReduction = moveIndex >= 4 && depth > 3;
+            auto [eval, _] = minimax(board, depth - 1 + checkMove - lateMoveReduction, alpha, beta, true, true);
             board.unmakeMove(move);
+            if (elapsed >= std::chrono::milliseconds(timeLimit)) {
+                searchStopped = true;
+                return {0, move};
+            }
             if (eval < min_eval) {
                 best_move = move;
             }
             min_eval = std::min(min_eval, eval);
             beta = std::min(beta, eval);
-            if (eval <= alpha) {
+            if (eval <= alpha && inSearch) {
                 if (!board.isCapture(move))
                     updateHistory(board, move, depth, is_maximizing);
                 break;
@@ -173,5 +214,60 @@ std::pair<int , Move> minimax(Board& board, int depth, int alpha, int beta, bool
         return {min_eval, best_move};
     }
 }
+
+std::pair<int , Move> quiesce(Board& board, int alpha, int beta, bool is_maximizing){
+    auto elapsed = std::chrono::high_resolution_clock::now() - searchStartTime;
+    if (elapsed >= std::chrono::milliseconds(timeLimit)){
+        searchStopped = true;
+        return {0, Move()};
+    }
+    Movelist moves;
+    movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board);
+    auto [resultReason, gameResult] = isGameOver(board, moves);
+    if (resultReason != GameResultReason::NONE || moves.empty()) {
+        return {evaluate_board(board, gameResult, resultReason), Move()};
+    }
+    Move best_move = Move();
+    sortCaptureList(board, moves);
+    if (is_maximizing) {
+        int max_eval = NEGINF-1;
+        for (auto move : moves) {
+            board.makeMove(move);
+            auto [eval, _] = quiesce(board, alpha, beta, false);
+            board.unmakeMove(move);
+            if (eval > max_eval) {
+                best_move = move;
+            }
+            max_eval = std::max(eval, max_eval);
+            alpha = std::max(alpha, eval);
+            if (eval >= beta) {
+                break;
+            }
+        }
+        return {max_eval, best_move};
+    }
+    else {
+        int min_eval = INF + 1;
+        for (auto move: moves) {
+            board.makeMove(move);
+            auto [eval, _] = quiesce(board, alpha, beta, true);
+            board.unmakeMove(move);
+            if (elapsed >= std::chrono::milliseconds(timeLimit)) {
+                searchStopped = true;
+                return {0, move};
+            }
+            if (eval < min_eval)
+                best_move = move;
+            min_eval = std::min(min_eval, eval);
+            beta = std::min(beta, eval);
+            if (eval <= alpha) {
+                break;
+            }
+
+        }
+        return {min_eval, best_move};
+    }
+}
+
 
 
