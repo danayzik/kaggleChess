@@ -3,6 +3,6 @@ tar -czf submission.tar.gz -C kaggle_submissions .
 #Run inside kaggle_submissions
 
 Compile command:
-g++ -std=c++17 -O2 -o chessBot main.cpp game_tables.cpp evaluation.cpp search.cpp transposition_table.cpp -ffunction-sections -fdata-sections -flto
+g++ -std=c++17 -O2 -o chessBot main.cpp history_killer_pv_searcher.cpp game_tables.cpp heuristic_evaluator.cpp engine.cpp basic_searcher.cpp history_pv_searcher.cpp transposition_table.cpp sorters.cpp basic_iterative_searcher.cpp iterative_pv_searcher.cpp -ffunction-sections -fdata-sections -flto
 strip chessBot
 #Run in VM

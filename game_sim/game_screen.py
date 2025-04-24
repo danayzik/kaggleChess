@@ -1,6 +1,6 @@
 import pygame
 import chess
-import cairosvg
+
 from io import BytesIO
 from game_sim.game_visual_constants import HEIGHT, WIDTH, SQUARE_SIZE, IMAGE_DIR, GAME_HEIGHT, GAME_WIDTH
 
@@ -8,21 +8,21 @@ from game_sim.game_visual_constants import HEIGHT, WIDTH, SQUARE_SIZE, IMAGE_DIR
 def load_chess_pieces():
     piece_to_image = {}
     colors = ['W', 'B']
-    piece_names = ['P', 'K','Q', 'R', 'B', 'N']
+    piece_names = ['P', 'K', 'Q', 'R', 'B', 'N']
     for color in colors:
         for piece in piece_names:
             symbol = piece
             if color == 'B':
                 symbol = symbol.lower()
-            svg_path = f"{IMAGE_DIR}\\{color}_{piece}.svg"
-            piece_to_image[symbol] = load_svg_to_surface(svg_path, SQUARE_SIZE)
+            png_path = f"{IMAGE_DIR}\\{color}_{piece}.png"  # Updated to use .png files
+            piece_to_image[symbol] = load_png_to_surface(png_path, SQUARE_SIZE)
     return piece_to_image
 
 
-def load_svg_to_surface(svg_path, size):
-    png_data = BytesIO(cairosvg.svg2png(url=svg_path, output_width=size, output_height=size))
-    image = pygame.image.load(png_data, "PNG")
-    return pygame.transform.scale(image, (size, size))
+def load_png_to_surface(png_path, size):
+    image = pygame.image.load(png_path).convert_alpha()  # Loads the PNG image
+    return pygame.transform.scale(image, (size, size))  # Scales the image to the given size
+
 
 
 class GameScreen:
