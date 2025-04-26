@@ -22,8 +22,9 @@ def time_it(func):
     return wrapper
 
 class TestBotApi(Player):
-    def __init__(self):
+    def __init__(self, number: str = ""):
         super().__init__()
+        self.number = number
         self.bot = self.init_bot()
 
     def set_color(self, color: chess.Color):
@@ -62,7 +63,7 @@ class TestBotApi(Player):
 
     def init_bot(self):
         process = subprocess.Popen(
-            "C:\\Users\\danay\\PycharmProjects\\kaggleChess\\players\\chessBot.exe",
+            f"C:\\Users\\danay\\PycharmProjects\\kaggleChess\\players\\chessBot{self.number}.exe",
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

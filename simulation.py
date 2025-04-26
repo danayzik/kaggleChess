@@ -21,6 +21,7 @@ def time_it(func):
         return result
     return wrapper
 botv1_wins = 0
+botv2_wins = 0
 stockfish_wins = 0
 draws = 0
 games = 1
@@ -38,10 +39,7 @@ def human_vs_bot():
         print("Crashed")
         print(g.board.fen())
 
-def run_games_in_threads():
-    num_threads = 5
-    iterations_per_thread = 10
-
+def run_bot_vs_stockfish(num_threads: int = 10, iterations_per_thread: int = 10):
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         futures = [executor.submit(bot_vs_stockfish) for _ in range(num_threads * iterations_per_thread)]
 
@@ -51,10 +49,42 @@ def run_games_in_threads():
     print(f"Stockfish wins: {stockfish_wins}")
     print(f"Draws: {draws}")
 
+def run_bot_vs_bot(num_threads: int = 10, iterations_per_thread: int = 10):
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(bot_vs_bot) for _ in range(num_threads * iterations_per_thread)]
+
+    for future in futures:
+        future.result()
+    print(f"old bot wins: {botv1_wins}")
+    print(f"new bot wins: {botv2_wins}")
+    print(f"Draws: {draws}")
+
+def bot_vs_bot():
+    global botv1_wins, botv2_wins, draws, games
+    p1 = TestBotApi()
+    p2 = TestBotApi("2")
+    g = Game(p1, p2, False)
+    try:
+        res = g.run()
+    except Exception as e:
+        print(e)
+        print("Crashed")
+        print(g.board.fen())
+        return
+    with counter_lock:
+        if res == 1:
+            botv1_wins += 1
+        elif res == 2:
+            botv2_wins += 1
+        elif res == 0:
+            draws += 1
+        print(f"Game {games} finished")
+        games += 1
+
 @time_it
 def bot_vs_stockfish():
     global botv1_wins, stockfish_wins, draws, games
-    p1 = TestBotApi()
+    p1 = TestBotApi("2")
     p2 = StockfishPlayer()
     p2.set_engine_strength(1320, 0.10)
     g = Game(p1, p2, False)
@@ -76,8 +106,9 @@ def bot_vs_stockfish():
         games += 1
 
 if __name__ == "__main__":
-    run_games_in_threads()
+    run_bot_vs_stockfish()
     # human_vs_bot()
+    # run_bot_vs_bot()
 
 
 
