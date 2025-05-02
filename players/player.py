@@ -40,3 +40,5 @@ class Player(ABC):
 
     def get_clicked_promotion_piece(self) -> chess.Piece:
         pass
+
+

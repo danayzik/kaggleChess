@@ -1,11 +1,11 @@
 import chess.pgn
 import csv
-from evaluator import Evaluator
+from evaluator import Evaluator, StaticStockfishEvaluator
 import os
 
 def process_pgn_file():
     input_pgn = r"D:\downloads\sep2019"
-    output_dir = r"D:\chess\data"
+    output_dir = r"D:\chess\dataDepth0"
     game_count = 0
     file_count = 1
 
@@ -17,7 +17,7 @@ def process_pgn_file():
         csv_writer.writerow(["FEN", "Evaluation"])
         return csv_file, csv_writer
 
-    evaluator = Evaluator()
+    evaluator = StaticStockfishEvaluator()
     pgn = open(input_pgn, 'r')
     csv_file, csv_writer = create_new_csv()
 
@@ -42,7 +42,6 @@ def process_pgn_file():
             csv_file, csv_writer = create_new_csv()
 
     csv_file.close()
+    evaluator.quit()
     pgn.close()
 
-if __name__ == "__main__":
-    process_pgn_file()

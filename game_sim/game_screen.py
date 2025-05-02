@@ -14,7 +14,7 @@ def load_chess_pieces():
             symbol = piece
             if color == 'B':
                 symbol = symbol.lower()
-            png_path = f"{IMAGE_DIR}\\{color}_{piece}.png"  # Updated to use .png files
+            png_path = f"{IMAGE_DIR}/{color}_{piece}.png"  # Updated to use .png files
             piece_to_image[symbol] = load_png_to_surface(png_path, SQUARE_SIZE)
     return piece_to_image
 
@@ -103,6 +103,7 @@ class GameScreen:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    exit(0)
 
 
     def update(self, board: chess.Board):

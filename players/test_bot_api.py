@@ -1,30 +1,16 @@
 from typing import Optional
 import chess
-
+import os
+import platform
 from players.player import Player
 import subprocess
 import time
 
-move_count = 1
-total_time = 0.0
 
-def time_it(func):
-
-    def wrapper(*args, **kwargs):
-        global move_count
-        global total_time
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        move_count += 1
-        total_time += (end_time - start_time)
-        return result
-    return wrapper
 
 class TestBotApi(Player):
-    def __init__(self, number: str = ""):
+    def __init__(self):
         super().__init__()
-        self.number = number
         self.bot = self.init_bot()
 
     def set_color(self, color: chess.Color):
@@ -36,7 +22,7 @@ class TestBotApi(Player):
         self.send_str(symbol)
 
 
-    @time_it
+
     def get_move(self, enemy_move: chess.Move) -> chess.Move:
         try:
             if enemy_move is None:
@@ -44,8 +30,6 @@ class TestBotApi(Player):
             else:
                 message = chess.Move.uci(enemy_move)
             self.send_str(message)
-            # self.read_move()
-            # print(f"Depth: {self.read_move()}")
             move_uci = self.read_move()
             move = chess.Move.from_uci(move_uci)
             return move
@@ -55,15 +39,15 @@ class TestBotApi(Player):
 
 
     def report_game_over(self, winner: Optional[chess.Color]) -> None:
-        print(f"Total time: {total_time:.6f} seconds")
-        print(f"Average time: {total_time/move_count:.6f} seconds")
         self.send_str("end")
         self.bot.kill()
 
 
     def init_bot(self):
+        exe_name = "chessBot.exe" if platform.system() == "Windows" else "chessBot"
+        bot_path = os.path.join("players", exe_name)
         process = subprocess.Popen(
-            f"C:\\Users\\danay\\PycharmProjects\\kaggleChess\\players\\chessBot{self.number}.exe",
+            bot_path,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
