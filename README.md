@@ -6,6 +6,8 @@ Dan Ayzik 206038929
 
 Noam Barlin 314620071
 
+### This file contains instruction on how to setup and play vs our bot or simulate games of our bot versus stockfish.
+### For information on the notebook please refer to notebook_readme.txt
 ## Requirements
 
 C++17 or higher (g++ 8 or higher)
@@ -29,6 +31,10 @@ Pip 19.0 or higher
 pip --version
 ```
 If any don't fit the requirements, please update them.
+
+### ******Note******
+#### If you're on windows, I provided a setup.bat file. Right click that file and click "run as administrator". 
+#### It will install the required tools.
 
 
 ## Setup
