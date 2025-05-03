@@ -13,13 +13,13 @@ def parse_arguments():
     # Subparser for stockfish vs bot (with visuals)
     parser_stockfish_visuals = subparsers.add_parser('stockfish-visuals', help='Run bot vs stockfish with visuals')
     parser_stockfish_visuals.add_argument('stockfish_path', type=str, help='Path to the stockfish executable')
-    parser_stockfish_visuals.add_argument('--stock_fish_strength', type=int, default=2000, help='Strength of the stockfish bot')
+    parser_stockfish_visuals.add_argument('--elo', type=int, default=2000, help='Strength of the stockfish bot')
 
 
     # Subparser for stockfish vs bot (without visuals)
     parser_stockfish = subparsers.add_parser('stockfish', help='Run bot vs stockfish without visuals')
     parser_stockfish.add_argument('stockfish_path', type=str, help='Path to the stockfish executable')
-    parser_stockfish.add_argument('--stock_fish_strength', type=int, default=2000, help='Strength of the stockfish bot')
+    parser_stockfish.add_argument('--elo', type=int, default=2000, help='Strength of the stockfish bot')
     parser_stockfish.add_argument('--num_threads', type=int, default=5, help='Number of threads to use')
     parser_stockfish.add_argument('--iterations_per_thread', type=int, default=10, help='Number of games to run per thread')
 
@@ -34,8 +34,8 @@ if __name__ == '__main__':
     if args.mode == 'human':
         human_vs_bot()
     elif args.mode == 'stockfish-visuals':
-        bot_vs_stockfish(args.stockfish_path, args.stock_fish_strength, visuals=True)
+        bot_vs_stockfish(args.stockfish_path, args.elo, visuals=True)
     elif args.mode == 'stockfish':
-        run_bot_vs_stockfish(args.stockfish_path, args.stock_fish_strength, args.num_threads, args.iterations_per_thread)
+        run_bot_vs_stockfish(args.stockfish_path, args.elo, args.num_threads, args.iterations_per_thread)
     else:
         print("Invalid mode selected.")

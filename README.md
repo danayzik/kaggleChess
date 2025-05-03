@@ -76,14 +76,14 @@ https://stockfishchess.org/download/
 Watch a game of stockfish playing against our bot
 ```bash
 
-python main.py stockfish-visuals </absolute/path/to/stockfish> --stock_fish_strength <STRENGTH>
+python main.py stockfish-visuals </absolute/path/to/stockfish> --elo <ELO>
 ```
 or
 ```bash
 
 python main.py stockfish-visuals </absolute/path/to/stockfish>
 ```
-STRENGTH is an optional parameter. Valid values are between 1320 and 3190. Default is 2000
+ELO is an optional parameter. Valid values are between 1320 and 3190. Default is 2000
 
 ### 3) Run concurrent simulations vs Stockfish
 
@@ -94,9 +94,9 @@ python main.py stockfish </absolute/path/to/stockfish>
 Optional flags:
 ```bash
 
---stock_fish_strength <STRENGTH> --num_threads <THREADS> --iterations_per_thread <GAMES>
+--elo <ELO> --num_threads <THREADS> --iterations_per_thread <GAMES>
 ```
-STRENGTH -> Same as before
+ELO -> Same as before
 
 THREADS -> Amount of threads that will run the games. default = 5
 
