@@ -2,6 +2,7 @@ import chess.pgn
 import csv
 from evaluator import Evaluator, StaticStockfishEvaluator
 import os
+import math
 
 def process_pgn_file():
     input_pgn = r"D:\downloads\sep2019"
@@ -44,4 +45,25 @@ def process_pgn_file():
     csv_file.close()
     evaluator.quit()
     pgn.close()
+
+def reeval_and_save_static(input_path='train.csv', output_path='train_static.csv'):
+    evaluator = StaticStockfishEvaluator()
+    count = 0
+
+    with open(input_path, 'r', newline='') as infile, open(output_path, 'w', newline='') as outfile:
+        reader = csv.reader(infile)
+        writer = csv.writer(outfile)
+
+        header = next(reader)  # skip header
+        writer.writerow(['FEN', 'Evaluation'])
+
+        for row in reader:
+            fen = row[0]
+            eval_score = evaluator.get_eval(fen)
+            if math.isinf(eval_score):
+                continue
+            writer.writerow([fen, eval_score])
+            count += 1
+
+    print(f"Total positions evaluated and saved: {count}")
 

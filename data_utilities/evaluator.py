@@ -47,6 +47,7 @@ class StaticStockfishEvaluator:
         self._send_command(f"position fen {fen}")
         self._send_command("eval")
         while True:
+
             line = self.engine.stdout.readline().strip()
             if line.startswith("NNUE evaluation"):
                 line = self.engine.stdout.readline().strip()
