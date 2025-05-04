@@ -43,7 +43,7 @@ Open a terminal and navigate to the workshop directory:
 
 ```bash
 
-cd /path/to/workshop_206038929_314620071
+cd /path/to/kaggleChess
 ```
 
 ### Compile our chess bot executable:
