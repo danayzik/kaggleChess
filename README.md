@@ -6,8 +6,8 @@ Dan Ayzik 206038929
 
 Noam Barlin 314620071
 
-### This file contains instruction on how to setup and play vs our bot or simulate games of our bot versus stockfish.
-### For information on the notebook please refer to notebook_readme.txt
+### This file contains instructions on how to setup and play vs our bot or simulate games of our bot versus stockfish.
+### The attached notebook contains code for training and testing a NNUE model. This model is not used in our bot.
 ## Requirements
 
 C++17 or higher (g++ 8 or higher)
@@ -43,7 +43,7 @@ Open a terminal and navigate to the workshop directory:
 
 ```bash
 
-cd /path/to/workshop
+cd /path/to/workshop_206038929_314620071
 ```
 
 ### Compile our chess bot executable:
@@ -91,7 +91,7 @@ ELO is an optional parameter. Valid values are between 1320 and 3190. Default is
 
 python main.py stockfish </absolute/path/to/stockfish>
 ```
-Optional flags:
+Optional parameters:
 ```bash
 
 --elo <ELO> --num_threads <THREADS> --iterations_per_thread <GAMES>

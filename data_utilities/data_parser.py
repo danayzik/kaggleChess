@@ -4,6 +4,7 @@ from evaluator import Evaluator, StaticStockfishEvaluator
 import os
 import math
 
+
 def process_pgn_file():
     input_pgn = r"D:\downloads\sep2019"
     output_dir = r"D:\chess\dataDepth0"
