@@ -2,9 +2,9 @@
 
 ## This project is submitted by
 
-Dan Ayzik 206038929
+Dan Ayzik *****
 
-Noam Barlin 314620071
+Noam Barlin ****
 
 ### This file contains instructions on how to setup and play vs our bot or simulate games of our bot versus stockfish.
 ### The attached notebook contains code for training and testing a NNUE model. This model is not used in our bot.
